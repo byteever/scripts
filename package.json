@@ -1,0 +1,110 @@
+{
+  "name": "@byteever/scripts",
+  "version": "1.0.0",
+  "description": "Collection of reusable scripts for ByteEver development.",
+  "author": {
+    "name": "sultann",
+    "email": "sultan@byteever.com",
+    "url": "https://byteever.com"
+  },
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "wordpress",
+    "byteever",
+    "scripts"
+  ],
+  "homepage": "https://github.com/WordPress/gutenberg/tree/HEAD/packages/scripts/README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WordPress/gutenberg.git",
+    "directory": "packages/scripts"
+  },
+  "bugs": {
+    "url": "https://github.com/WordPress/gutenberg/issues"
+  },
+  "engines": {
+    "node": ">=12.13",
+    "npm": ">=6.9"
+  },
+  "files": [
+    "bin",
+    "config",
+    "scripts",
+    "utils"
+  ],
+  "bin": {
+    "byteever-scripts": "./bin/byteever-scripts.js"
+  },
+  "dependencies": {
+    "@svgr/webpack": "^5.5.0",
+    "@wordpress/babel-preset-default": "^6.3.2",
+    "@wordpress/browserslist-config": "^4.1.0",
+    "@wordpress/dependency-extraction-webpack-plugin": "^3.2.1",
+    "@wordpress/eslint-plugin": "^9.1.2",
+    "@wordpress/jest-preset-default": "^7.1.1",
+    "@wordpress/npm-package-json-lint-config": "^4.1.0",
+    "@wordpress/postcss-plugins-preset": "^3.2.1",
+    "@wordpress/prettier-config": "^1.1.1",
+    "@wordpress/stylelint-config": "^19.1.0",
+    "babel-jest": "^26.6.3",
+    "babel-loader": "^8.2.2",
+    "browser-sync": "^2.27.5",
+    "browser-sync-webpack-plugin": "^2.3.0",
+    "browserslist": "^4.16.6",
+    "camelcase": "^6.2.0",
+    "chalk": "^4.0.0",
+    "check-node-version": "^4.1.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^6.4.1",
+    "core-js": "^3.16.1",
+    "cross-spawn": "^5.1.0",
+	"css-loader": "3.6.0",
+    "cssnano": "^5.0.7",
+    "cwd": "^0.10.0",
+    "dir-glob": "^3.0.1",
+    "eslint": "^7.17.0",
+    "eslint-plugin-markdown": "^2.2.0",
+    "eslint-webpack-plugin": "^2.5.4",
+    "filenamify": "^4.2.0",
+    "ignore-emit-webpack-plugin": "2.0.6",
+    "imagemin-webpack-plugin": "^2.4.2",
+    "jest": "^26.6.3",
+    "markdownlint": "^0.23.1",
+    "markdownlint-cli": "^0.27.1",
+    "merge-deep": "^3.0.3",
+    "mini-css-extract-plugin": "^2.1.0",
+    "minimist": "^1.2.0",
+    "npm-package-json-lint": "^5.0.0",
+    "postcss": "^8.3.6",
+    "postcss-css-variables": "^0.18.0",
+    "postcss-editor-styles": "^0.3.0",
+    "postcss-import": "^14.0.2",
+    "postcss-loader": "^5.0.0",
+    "postcss-mixins": "^7.0.3",
+    "postcss-nested": "^5.0.6",
+    "postcss-object-fit-images": "^1.1.2",
+    "postcss-preset-env": "^6.7.0",
+    "prettier": "npm:wp-prettier@2.2.1-beta-1",
+    "read-pkg-up": "^1.0.1",
+    "resolve-bin": "^0.4.0",
+    "sass": "^1.37.5",
+    "sass-loader": "^10.1.1",
+    "source-map-loader": "^3.0.0",
+    "stylelint": "^13.8.0",
+    "stylelint-webpack-plugin": "^2.2.2",
+    "terser-webpack-plugin": "^5.1.4",
+    "thread-loader": "^3.0.4",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.50.0",
+    "webpack-bundle-analyzer": "^4.4.2",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-remove-empty-scripts": "^0.7.1",
+    "webpack-rtl-plugin": "^2.0.0",
+    "webpack-sources": "^2.3.0",
+    "webpackbar": "^5.0.0-3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

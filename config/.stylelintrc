@@ -1,0 +1,7 @@
+{
+  "extends": [ "@wordpress/stylelint-config/scss" ],
+  "rules": {
+	"no-empty-source": null,
+	"number-leading-zero": null
+  }
+}
