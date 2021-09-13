@@ -19,25 +19,25 @@ const getCSSLoaders = ( isProduction ) => {
 		},
 		{
 			loader: require.resolve( 'css-loader' ),
-			// options: {
-			// 	sourceMap: ! isProduction,
-			// 	modules: {
-			// 		auto: true,
-			// 	},
-			// },
+			options: {
+				sourceMap: ! isProduction,
+				modules: {
+					auto: true,
+				},
+			},
 		},
-		// {
-		// 	loader: require.resolve( 'postcss-loader' ),
-		// 	options: {
-		// 		// postcssOptions: {
-		// 		// 	// Provide a fallback configuration if there's not
-		// 		// 	// one explicitly available in the project.
-		// 		// 	...( ! hasPostCSSConfig() && {
-		// 		// 		config: fromConfigRoot( 'postcss.config.js' ),
-		// 		// 	} ),
-		// 		// },
-		// 	},
-		// },
+		{
+			loader: require.resolve( 'postcss-loader' ),
+			options: {
+				postcssOptions: {
+					// Provide a fallback configuration if there's not
+					// one explicitly available in the project.
+					...( ! hasPostCSSConfig() && {
+						config: fromConfigRoot( 'postcss.config.js' ),
+					} ),
+				},
+			},
+		},
 	].filter( Boolean );
 };
 
@@ -79,6 +79,10 @@ module.exports = ( { isProduction, isPackage } ) => {
 				use: [ '@svgr/webpack', 'url-loader' ],
 			},
 			{
+				test: /\.css$/,
+				use: getCSSLoaders( isProduction ),
+			},
+			{
 				test: /\.(sc|sa)ss$/,
 				use: [
 					...getCSSLoaders( isProduction ),
@@ -90,47 +94,6 @@ module.exports = ( { isProduction, isPackage } ) => {
 					},
 				],
 			},
-			// {
-			// 	test: /\.css$/,
-			// 	use: getCSSLoaders( {
-			// 		options: {
-			// 			sourceMap: ! isProduction,
-			// 			url: isPackage,
-			// 		},
-			// 		postcss: true,
-			// 		sass: false,
-			// 	} ),
-			// 	exclude: /\.module\.css$/,
-			// },
-			// {
-			// 	test: /\.(sc|sa)ss$/,
-			// 	use: [
-			// 		...getCSSLoaders( {
-			// 			options: {
-			// 				sourceMap: ! isProduction,
-			// 				url: isPackage,
-			// 			},
-			// 			postcss: false,
-			// 			sass: true,
-			// 		} ),
-			// 	],
-			// },
-			// {
-			// 	test: /\.module\.css$/,
-			// 	use: [
-			// 		...getCSSLoaders( {
-			// 			options: {
-			// 				sourceMap: ! isProduction,
-			// 				url: isPackage,
-			// 				import: false,
-			// 				modules: true,
-			// 			},
-			// 			postcss: true,
-			// 			sass: true,
-			// 		} ),
-			// 	],
-			// },
-
 			// when in package module only include referenced resources
 			isPackage && {
 				test: /\.(woff(2)?|ttf|eot|svg|jpg|jpeg|png|giff|webp)(\?v=\d+\.\d+\.\d+)?$/,

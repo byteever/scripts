@@ -5,7 +5,7 @@ module.exports = ( {
 	isPackage,
 	projectConfig: { devServer },
 	packageConfig: { packageType, source, main, umd, libraryName },
-	buildFiles,
+	entryFiles,
 } ) => {
 	if ( isPackage ) {
 		const config = {};
@@ -31,5 +31,5 @@ module.exports = ( {
 		return config;
 	}
 
-	return buildFiles;
+	return entryFiles;
 };

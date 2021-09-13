@@ -2,7 +2,7 @@
  * Internal dependencies
  */
 const {
-	getBuildFiles,
+	getEntryFiles,
 	getScriptsConfig,
 	getScriptsPackageBuildConfig,
 } = require( '../utils' );
@@ -25,7 +25,7 @@ const projectConfig = getScriptsConfig();
 const packageConfig = getScriptsPackageBuildConfig();
 
 const { source, main } = packageConfig;
-const buildFiles = getBuildFiles();
+const entryFiles = getEntryFiles();
 
 // assume it's a package if there's source and main
 const isPackage = typeof source !== 'undefined' && typeof main !== 'undefined';
@@ -37,7 +37,7 @@ const defaultTargets = [ '> 1%', 'ie >= 11', 'Firefox ESR', 'last 2 versions' ];
 const config = {
 	projectConfig,
 	packageConfig,
-	buildFiles,
+	entryFiles,
 	isPackage,
 	mode,
 	isProduction,

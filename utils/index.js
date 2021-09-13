@@ -12,7 +12,7 @@ const {
 } = require( './cli' );
 
 const {
-	getBuildFiles,
+	getEntryFiles,
 	getJestOverrideConfigFile,
 	getScriptsConfig,
 	getScriptsPackageBuildConfig,
@@ -37,7 +37,7 @@ module.exports = {
 	fromProjectRoot,
 	getArgFromCLI,
 	getArgsFromCLI,
-	getBuildFiles,
+	getEntryFiles,
 	getFileArgsFromCLI,
 	getJestOverrideConfigFile,
 	getNodeArgsFromCLI,

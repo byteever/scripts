@@ -14,21 +14,21 @@ class CleanExtractedDeps {
 			for (const [entrypointName, entrypoint] of compilation.entrypoints.entries()) {
 				let compilationAssetMatch = false;
 				let entryPointPath = false;
-
 				Object.keys(compilation.assets).forEach((compilationAsset) => {
-					if (compilationAsset.match(new RegExp(`${entrypointName}.asset.php$`))) {
+					if (!compilationAssetMatch && compilationAsset.match(new RegExp(`/${entrypointName}.asset.php$`))) {
 						compilationAssetMatch = compilationAsset;
 					}
-					if (compilationAsset.match(new RegExp(`${entrypointName}.css$`))) {
+					if (!entryPointPath && compilationAsset.match(new RegExp(`/${entrypointName}.css$`))) {
 						entryPointPath = compilationAsset;
 					}
 				});
 
 				if (
-					entrypoint.origins[0].request.match(/\.css$/) &&
+					entrypoint.origins[0].request.match(/\.s?css$/) &&
 					entryPointPath &&
 					compilationAssetMatch
 				) {
+
 					const source = compilation.assets[compilationAssetMatch].source();
 
 					delete compilation.assets[compilationAssetMatch];

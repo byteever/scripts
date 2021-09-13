@@ -8,18 +8,7 @@ module.exports = ( { isProduction } ) => {
 	return {
 		concatenateModules: isProduction,
 		splitChunks: {
-			cacheGroups: {
-				style: {
-					type: 'css/mini-extract',
-					test: /[\\/]style(\.module)?\.(sc|sa|c)ss$/,
-					chunks: 'all',
-					enforce: true,
-					name( module, chunks, cacheGroupKey ) {
-						return `${ cacheGroupKey }-${ chunks[ 0 ].name }`;
-					},
-				},
-				default: false,
-			},
+			name: false,
 		},
 		minimizer: [
 			new TerserPlugin( {

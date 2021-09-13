@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 const path = require( 'path' );
 
 module.exports = ( { file, env } ) => {
@@ -17,7 +20,10 @@ module.exports = ( { file, env } ) => {
 	};
 
 	// Only load postcss-editor-styles plugin when we're processing the editor-style.css file.
-	if ( path.basename( file ) === 'editor-style.css' ) {
+	if (
+		path.basename( file ) === 'editor-style.scss' ||
+		path.basename( file ) === 'editor-style.css'
+	) {
 		config.plugins[ 'postcss-editor-styles' ] = {
 			scopeTo: '.editor-styles-wrapper',
 			ignore: [

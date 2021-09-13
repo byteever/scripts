@@ -120,17 +120,10 @@ function getJestOverrideConfigFile( suffix ) {
 }
 
 const getDefaultConfig = () => {
-	const wpMode = getArgFromCLI('--wp');
-	const devServer = hasArgInCLI('--dev-server');
-	const devServerPort = getArgFromCLI('--port') || 8000;
-
 	return {
-		entry: require(fromConfigRoot('buildfiles.config.js')),
+		entry: require(fromConfigRoot('entries.config.js')),
 		filenames: require(fromConfigRoot('filenames.config.js')),
 		paths: require(fromConfigRoot('paths.config.js')),
-		wordpress: wpMode !== 'false',
-		devServer,
-		devServerPort,
 		// true by default (if WP_NO_EXTERNALS is not set)
 		// if WP_NO_EXTERNALS is truthy then wpDependencyExternals is false
 		wpDependencyExternals:
@@ -253,7 +246,7 @@ const getScriptsPackageBuildConfig = () => {
 	};
 };
 
-const getBuildFiles = () => {
+const getEntryFiles = () => {
 	const { entry } = getScriptsConfig();
 
 	const entries = {};
@@ -340,7 +333,7 @@ const getWebpackArgs = () => {
 
 
 module.exports = {
-	getBuildFiles,
+	getEntryFiles,
 	getDefaultConfig,
 	getJestOverrideConfigFile,
 	getScriptsConfig,

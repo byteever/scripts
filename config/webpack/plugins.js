@@ -51,9 +51,9 @@ module.exports = ( {
 			} ),
 		} ),
 
-		// new WebpackRTLPlugin( {
-		// 	filename: [ /(\.css)/i, '-rtl$1' ],
-		// } ),
+		new WebpackRTLPlugin( {
+			filename: [ /(\.css)/i, '-rtl$1' ],
+		} ),
 
 		// The WP_BUNDLE_ANALYZER global variable enables a utility that represents
 		// bundle content as a convenient interactive zoomable treemap.
@@ -62,14 +62,11 @@ module.exports = ( {
 		// MiniCSSExtractPlugin to extract the CSS thats gets imported into JavaScript.
 		new MiniCSSExtractPlugin( {
 			//esModule: false,
-			filename: ( options ) => {
+			filename: () => {
 				if ( isPackage ) {
 					return removeDistFolder( style );
 				}
-
-				return options.chunk.name.match( /-block$/ )
-					? filenames.blockCSS
-					: filenames.css;
+				return filenames.css;
 			},
 			chunkFilename: '[id].css',
 		} ),
