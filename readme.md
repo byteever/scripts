@@ -13,8 +13,6 @@ npm install git+ssh://git@github.com:byteever/scripts.git --save-dev
 
 ## Setup
 
-This package offers a command-line interface and exposes a binary called `wp-scripts` so you can call it directly with `npx` – an npm package runner. However, this module is designed to be configured using the `scripts` section in the `package.json` file of your project. This comprehensive example demonstrates the most of the capabilities included.
-
 _Example:_
 
 ```json
@@ -36,4 +34,49 @@ _Example:_
 		"test:unit": "byteever-scripts test-unit-js"
 	}
 }
+```
+
+### Entry points
+This package uses Webpack under the hood and uses the following entry points:
+```
+[
+'assets/js/*/*.js',
+'assets/css/*/*.scss',
+'assets/fronts/*',
+'assets/images/*',
+]
+```
+To override you will need to define `@byteever/scripts` in your `package.json` file. For example:
+
+```json
+{
+    "@byteever/scripts": {
+        "entry": {
+            "file": "./file.js" 
+        }
+    }
+}
+```
+### Browsersync
+
+```json
+{
+    "@byteever/scripts": {
+        "devURL": "https://project.test"
+    }
+}
+```
+
+### Webpack
+
+Here's an example `webpack.config.js` you could add to the root of your project to extend `@byteever/scripts` Webpack.
+
+```js
+const defaultConfig = require('@byteever/scripts/config/webpack.config');
+module.exports = {
+	...defaultConfig,
+	myObject: {
+        stuffHere: true
+    }
+};
 ```
