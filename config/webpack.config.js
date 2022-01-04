@@ -43,7 +43,7 @@ const config = {
 	isProduction,
 	defaultTargets,
 };
-
+console.log(config);
 module.exports = {
 	devtool: isProduction ? false : 'source-map',
 	mode,

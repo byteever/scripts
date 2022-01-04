@@ -3,11 +3,7 @@
  */
 const path = require( 'path' );
 
-module.exports = ( {
-	isPackage,
-	projectConfig: { filenames },
-	entryFiles,
-} ) => {
+module.exports = ( { isPackage } ) => {
 	if ( isPackage ) {
 		return {
 			path: path.resolve( process.cwd(), 'dist' ),
@@ -17,7 +13,7 @@ module.exports = ( {
 	return {
 		clean: true,
 		path: path.resolve( process.cwd(), 'dist' ),
-		chunkFilename: filenames.jsChunk,
-		filename: filenames.js,
+		chunkFilename: 'js/[name].[contenthash].chunk.js',
+		filename: 'js/[name].js',
 	};
 };
