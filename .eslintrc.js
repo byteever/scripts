@@ -1,10 +1,6 @@
 const eslintConfig = {
 	root: true,
 	extends: [ 'plugin:@wordpress/eslint-plugin/recommended' ],
-	parser: '@babel/eslint-parser',
-	parserOptions: {
-		requireConfigFile: false,
-	},
 	globals: {
 		ajaxurl: true,
 		document: true,
@@ -12,7 +8,7 @@ const eslintConfig = {
 		lodash: true,
 		module: true,
 		process: true,
-		window: true,
+		window: true
 	},
 	plugins: [ '@wordpress' ],
 	settings: {
