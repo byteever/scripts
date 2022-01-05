@@ -19,6 +19,7 @@ const WebpackRTLPlugin = require( 'webpack-rtl-plugin' );
 const WebpackBar = require( 'webpackbar' );
 const path = require( 'path' );
 const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
+const { CleanWebpackPlugin } = require( 'clean-webpack-plugin' );
 /**
  * Internal dependencies
  */
@@ -51,6 +52,17 @@ module.exports = ( {
 			} ),
 		} ),
 
+		// During rebuilds, all webpack assets that are not used anymore will be
+		// removed automatically. There is an exception added in watch mode for
+		// fonts and images. It is a known limitations:
+		// https://github.com/johnagan/clean-webpack-plugin/issues/159
+		new CleanWebpackPlugin( {
+			cleanAfterEveryBuildPatterns: [ '!fonts/**', '!images/**' ],
+			// Prevent it from deleting webpack assets during builds that have
+			// multiple configurations returned in the webpack config.
+			cleanStaleWebpackAssets: false,
+		} ),
+
 		new WebpackRTLPlugin( {
 			filename: [ /(\.css)/i, '-rtl$1' ],
 		} ),
@@ -76,7 +88,16 @@ module.exports = ( {
 			new CopyWebpackPlugin( {
 				patterns: [
 					{
-						from: '**/*.{jpg,jpeg,png,gif,svg,eot,ttf,woff,woff2}',
+						from: 'images/*.{jpg,jpeg,png,gif,svg}',
+						to: '[path][name].[ext]',
+						noErrorOnMissing: true,
+						context: path.resolve(
+							process.cwd(),
+							paths.copyAssetsDir
+						),
+					},
+					{
+						from: 'fonts/*.{eot,ttf,woff,woff2,svg}',
 						to: '[path][name].[ext]',
 						noErrorOnMissing: true,
 						context: path.resolve(

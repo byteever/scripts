@@ -3,11 +3,7 @@
  */
 const path = require( 'path' );
 
-module.exports = ( {
-	isPackage,
-	projectConfig: { filenames },
-	entryFiles,
-} ) => {
+module.exports = ( { isPackage, projectConfig: { filenames } } ) => {
 	if ( isPackage ) {
 		return {
 			path: path.resolve( process.cwd(), 'dist' ),
