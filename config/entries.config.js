@@ -8,7 +8,7 @@ const entries = fastGlob
 	.sync(
 		path.resolve(
 			process.cwd(),
-			'assets/(js|css|blocks)/*/!(*.min.*|*.map|_*)(*.js|*.jsx|*.css|*.scss)'
+			'assets/(js|css|blocks|vendors)/*/!(*.min.*|*.map|_*)(*.js|*.jsx|*.css|*.scss)'
 		)
 	)
 	.reduce( ( memo, file ) => {

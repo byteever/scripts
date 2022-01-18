@@ -21,5 +21,6 @@ module.exports = ( {
 	return {
 		jquery: 'jQuery',
 		lodash: 'lodash',
+		$: 'jQuery',
 	};
 };

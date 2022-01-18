@@ -66,6 +66,7 @@ const eslintConfig = {
 			'@wordpress/viewport',
 			'@wordpress/warning',
 			'@wordpress/wordcount',
+			'@babel/plugin-proposal-class-properties',
 		],
 	},
 	rules: {
