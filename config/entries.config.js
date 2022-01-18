@@ -23,5 +23,4 @@ const entries = fastGlob
 			[ name ]: file,
 		};
 	}, {} );
-
 module.exports = entries;

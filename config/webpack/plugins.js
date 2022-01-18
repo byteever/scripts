@@ -39,7 +39,7 @@ const removeDistFolder = ( file ) => {
 module.exports = ( {
 	isPackage,
 	isProduction,
-	projectConfig: { filenames, devURL, paths, wpDependencyExternals },
+	projectConfig: { devURL, paths, wpDependencyExternals },
 	packageConfig: { style },
 } ) => {
 	return [
@@ -78,7 +78,7 @@ module.exports = ( {
 				if ( isPackage ) {
 					return removeDistFolder( style );
 				}
-				return filenames.css;
+				return 'css/[name].css';
 			},
 			chunkFilename: '[id].css',
 		} ),

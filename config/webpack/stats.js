@@ -5,6 +5,7 @@ module.exports = () => {
 		errors: true,
 		modules: true,
 		warnings: true,
+		children: false,
 		// Our additional options.
 		assets: true,
 		errorDetails: true,

@@ -1,18 +1,20 @@
 {
   "extends": [ "@wordpress/stylelint-config/scss" ],
-  "plugins": ["stylelint-declaration-use-variable", "stylelint-order"],
   "rules": {
-	"sh-waqar/declaration-use-variable": [
-	  ["/color/", { "ignoreValues": ["transparent", "inherit", "currentColor"] }]
-	],
-	"order/properties-alphabetical-order": true,
-	"function-url-quotes": "always",
-	"selector-class-pattern": null,
-	"no-eol-whitespace": null,
-	"selector-nested-pattern": ["^&"],
+	"at-rule-empty-line-before": null,
+	"at-rule-no-unknown": null,
+	"comment-empty-line-before": null,
+	"declaration-block-no-duplicate-properties": null,
+	"declaration-colon-newline-after": null,
+	"declaration-property-unit-whitelist": null,
+	"font-weight-notation": null,
+	"max-line-length": null,
 	"no-descending-specificity": null,
-	"at-rule-no-unknown": [true, { "ignoreAtRules": ["mixin", "define-mixin"] }],
-	"no-empty-source": null,
-	"number-leading-zero": null
+	"no-duplicate-selectors": null,
+	"rule-empty-line-before": null,
+	"selector-class-pattern": null,
+	"string-quotes": "single",
+	"value-keyword-case": null,
+	"value-list-comma-newline-after": null
   }
 }
