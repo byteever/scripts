@@ -95,6 +95,7 @@
     "postcss-preset-env": "^6.7.0",
     "prettier": "npm:wp-prettier@2.2.1-beta-1",
     "react-refresh": "^0.10.0",
+    "read-pkg": "^7.0.0",
     "read-pkg-up": "^1.0.1",
     "resolve-bin": "^1.0.0",
     "sass": "^1.37.5",
