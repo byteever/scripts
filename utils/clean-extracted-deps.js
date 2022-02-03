@@ -3,6 +3,7 @@
  */
 
 const { RawSource } = require('webpack-sources');
+const path = require('path');
 
 class CleanExtractedDeps {
 	constructor(options) {
@@ -15,20 +16,20 @@ class CleanExtractedDeps {
 				let compilationAssetMatch = false;
 				let entryPointPath = false;
 				Object.keys(compilation.assets).forEach((compilationAsset) => {
-					if (!compilationAssetMatch && compilationAsset.match(new RegExp(`/${entrypointName}.asset.php$`))) {
+					if (!compilationAssetMatch && compilationAsset.match(new RegExp(`/${path.basename(entrypointName)}.asset.php$`))) {
 						compilationAssetMatch = compilationAsset;
 					}
-					if (!entryPointPath && compilationAsset.match(new RegExp(`/${entrypointName}.css$`))) {
+					if (!entryPointPath && compilationAsset.match(new RegExp(`/${path.basename(entrypointName)}.css$`))) {
 						entryPointPath = compilationAsset;
 					}
 				});
+
 
 				if (
 					entrypoint.origins[0].request.match(/\.s?css$/) &&
 					entryPointPath &&
 					compilationAssetMatch
 				) {
-
 					const source = compilation.assets[compilationAssetMatch].source();
 
 					delete compilation.assets[compilationAssetMatch];

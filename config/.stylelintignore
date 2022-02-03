@@ -2,5 +2,4 @@
 
 build
 vendor
-dist
-assets/vendors
+assets/dist

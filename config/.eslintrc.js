@@ -1,10 +1,11 @@
+/**
+ * Internal dependencies
+ */
+const { hasBabelConfig } = require( '../utils' );
+
 const eslintConfig = {
 	root: true,
 	extends: [ 'plugin:@wordpress/eslint-plugin/recommended' ],
-	parser: '@babel/eslint-parser',
-	parserOptions: {
-		requireConfigFile: false,
-	},
 	globals: {
 		ajaxurl: true,
 		document: true,
@@ -13,6 +14,7 @@ const eslintConfig = {
 		module: true,
 		process: true,
 		window: true,
+		browser: true,
 	},
 	plugins: [ '@wordpress' ],
 	settings: {
@@ -79,6 +81,7 @@ const eslintConfig = {
 		'import/no-unresolved': [ 2, { ignore: [ '^@wordpress/' ] } ],
 		'no-shadow': 0,
 		camelcase: 0,
+		'no-var': 0,
 		'jsdoc/require-param': 'off',
 		'no-console': 'off',
 		'jsdoc/require-returns-description': 'off',
@@ -92,5 +95,14 @@ const eslintConfig = {
 		],
 	},
 };
+
+if ( ! hasBabelConfig() ) {
+	eslintConfig.parserOptions = {
+		requireConfigFile: false,
+		babelOptions: {
+			presets: [ require.resolve( '@wordpress/babel-preset-default' ) ],
+		},
+	};
+}
 
 module.exports = eslintConfig;

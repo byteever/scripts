@@ -32,7 +32,7 @@ const hasLintConfig =
 	hasPackageProp( 'stylelint' );
 
 const defaultConfigArgs = ! hasLintConfig
-	? [ '--config', fromConfigRoot( '.stylelintrc' ) ]
+	? [ '--config', fromConfigRoot( '.stylelintrc.json' ) ]
 	: [];
 
 // See: https://github.com/stylelint/stylelint/blob/HEAD/docs/user-guide/ignore-code.md#files-entirely.

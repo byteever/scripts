@@ -12,10 +12,7 @@ const {
 } = require( './cli' );
 
 const {
-	getEntryFiles,
 	getJestOverrideConfigFile,
-	getScriptsConfig,
-	getScriptsPackageBuildConfig,
 	getWebpackArgs,
 	hasBabelConfig,
 	hasCssnanoConfig,
@@ -25,28 +22,20 @@ const {
 	hasPostCSSConfig,
 	hasPrettierConfig,
 	hasStylelintConfig,
-	hasTsConfig,
 	hasWebpackConfig,
 } = require( './config' );
 const { fromProjectRoot, fromConfigRoot, hasProjectFile } = require( './file' );
-const { hasPackageProp, getPackageProp, getPackagePath, getPackage, getPackageVersion } = require( './package' );
-const { displayWebpackStats } = require('./webpack');
+const { getPackageProp, hasPackageProp } = require( './package' );
+
 module.exports = {
-	displayWebpackStats,
-	fromConfigRoot,
 	fromProjectRoot,
+	fromConfigRoot,
 	getArgFromCLI,
 	getArgsFromCLI,
-	getEntryFiles,
 	getFileArgsFromCLI,
 	getJestOverrideConfigFile,
 	getNodeArgsFromCLI,
-	getPackage,
-	getPackagePath,
 	getPackageProp,
-	getPackageVersion,
-	getScriptsConfig,
-	getScriptsPackageBuildConfig,
 	getWebpackArgs,
 	hasArgInCLI,
 	hasBabelConfig,
@@ -60,7 +49,6 @@ module.exports = {
 	hasPrettierConfig,
 	hasProjectFile,
 	hasStylelintConfig,
-	hasTsConfig,
 	hasWebpackConfig,
 	spawnScript,
 };
