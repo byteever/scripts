@@ -40,30 +40,17 @@ _Example:_
 This package uses Webpack under the hood and uses the following entry points:
 ```
 [
-'assets/js/*/*.js',
-'assets/css/*/*.scss',
+'assets/js/*.js',
+'assets/css/*.scss',
 'assets/fronts/*',
 'assets/images/*',
 ]
-```
-To override you will need to define `@byteever/scripts` in your `package.json` file. For example:
 
-```json
-{
-    "@byteever/scripts": {
-        "entry": {
-            "file": "./file.js" 
-        }
-    }
-}
-```
 ### Browsersync
 
 ```json
 {
-    "@byteever/scripts": {
-        "devURL": "https://project.test"
-    }
+     "devURL": "https://project.test"
 }
 ```
 
