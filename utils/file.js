@@ -1,39 +1,24 @@
-/**
- * External dependencies
- */
-const { existsSync, readdirSync } = require( 'fs' );
-const path = require( 'path' );
+const path = require('path');
+const { glob } = require('glob');
 
 /**
- * Internal dependencies
+ * Try multiple glob patterns in order until a match is found.
+ *
+ * @param {string} sourcePath - Base directory to search within (e.g., 'resources')
+ * @param {string[]} patterns - List of glob patterns relative to baseDir
+ * @returns {string[]} Matched file paths
  */
-const { getPackagePath } = require( './package' );
+const getEntries = (sourcePath, patterns) => {
+	for (const pattern of patterns) {
+		const matches = glob.sync(path.join(sourcePath, pattern));
+		if (matches.length > 0) {
+			return matches;
+		}
+	}
 
-const fromProjectRoot = ( fileName ) =>
-	path.join( path.dirname( getPackagePath() ), fileName );
-
-const hasProjectFile = ( fileName ) =>
-	existsSync( fromProjectRoot( fileName ) );
-
-const fromConfigRoot = ( fileName ) =>
-	path.join( path.dirname( __dirname ), 'config', fileName );
-
-const fromScriptsRoot = ( scriptName ) =>
-	path.join( path.dirname( __dirname ), 'scripts', `${ scriptName }.js` );
-
-const hasScriptFile = ( scriptName ) =>
-	existsSync( fromScriptsRoot( scriptName ) );
-
-const getScripts = () =>
-	readdirSync( path.join( path.dirname( __dirname ), 'scripts' ) )
-		.filter( ( f ) => path.extname( f ) === '.js' )
-		.map( ( f ) => path.basename( f, '.js' ) );
+	return [];
+};
 
 module.exports = {
-	fromProjectRoot,
-	fromConfigRoot,
-	fromScriptsRoot,
-	getScripts,
-	hasProjectFile,
-	hasScriptFile,
+	getEntries,
 };

@@ -1,69 +1,157 @@
-# ByteEver Scripts
-A collection of bundled scripts for WordPress development.
+# @byteever/scripts
 
-## Installation
+> ⚡ Minimal, opinionated Webpack config builder for WordPress plugin and theme development — powered by `@wordpress/scripts`.
 
-You only need to install one npm module:
+---
+
+### 🚀 Features
+
+- ✅ Extends `@wordpress/scripts` with zero boilerplate
+- ✅ Smart file discovery from the `resources/` directory
+- ✅ Separate handling of admin, frontend, shared, and vendor files
+- ✅ Auto-detection of client and source scripts
+- ✅ Automatically compiles block files to PHP
+- ✅ Copies fonts and images automatically
+- ✅ Removes empty JS files generated from SCSS-only entries
+- ✅ Streamlined progress output with `webpackbar`
+- ✅ Trims unused timezone data from `moment-timezone`
+
+---
+
+### 📦 Installation
 
 ```bash
-npm install git+ssh://git@github.com:byteever/scripts.git --save-dev
+npm install @byteever/scripts --save-dev
+npm install @wordpress/scripts --save-dev
 ```
 
-**Note**: This package requires Node.js 12.13.0 or later, and `npm` 6.9.0 or later. It is not compatible with older versions.
+---
 
-## Setup
+### 🛠 Usage
 
-_Example:_
-
-```json
-{
-	"scripts": {
-		"watch": "byteever-scripts start",
-		"build": "byteever-scripts build",
-		"format": "byteever-scripts format-js",
-		"lint": "npm run lint:js && npm run lint:css && npm run lint:pkg-json && npm run lint:md",
-		"lint:js": "byteever-scripts lint-js  --fix",
-		"lint:css": "byteever-scripts lint-style --fix",
-		"lint:pkg-json": "byteever-scripts lint-pkg-json",
-		"lint:md": "byteever-scripts lint-md-docs",
-		"analyze-bundles": "byteever-scripts build --webpack-bundle-analyzer",
-		"check-engines": "byteever-scripts check-engines",
-		"check-licenses": "byteever-scripts check-licenses",
-		"packages-update": "byteever-scripts packages-update",
-		"test:e2e": "byteever-scripts test-e2e",
-		"test:unit": "byteever-scripts test-unit-js"
-	}
-}
-```
-
-### Entry points
-This package uses Webpack under the hood and uses the following entry points:
-```
-[
-'assets/js/*.js',
-'assets/css/*.scss',
-'assets/fronts/*',
-'assets/images/*',
-]
-
-### Browsersync
-
-```json
-{
-     "devURL": "https://project.test"
-}
-```
-
-### Webpack
-
-Here's an example `webpack.config.js` you could add to the root of your project to extend `@byteever/scripts` Webpack.
+In your plugin or theme root:
 
 ```js
-const defaultConfig = require('@byteever/scripts/config/webpack.config');
-module.exports = {
-	...defaultConfig,
-	myObject: {
-        stuffHere: true
-    }
-};
+// webpack.config.js
+const baseConfig = require('@wordpress/scripts/config/webpack.config');
+const createConfig = require('@byteever/scripts');
+
+module.exports = createConfig(baseConfig);
 ```
+
+---
+
+### 🔍 Source Auto-Discovery (Default Behavior)
+
+This package automatically scans the `resources/` directory to detect entry points for Webpack, following a clear priority-based pattern.
+
+#### 🧩 For `scripts/` and `styles/` folders:
+
+- If a folder (like `scripts/admin/` or `styles/frontend/`) contains a file named `index.js`, `index.jsx`, or `index.ts`, that file will be used as the entry point.
+- If no `index` file is found, it will then look **one level deeper** inside that folder for any file that:
+	- **Does not start with an underscore** (`_`)
+	- Has one of these extensions: `.js`, `.jsx`, `.ts`, `.scss`, `.sass`, or `.css`
+
+#### 🧩 For the `client/` folder:
+
+- It checks each top-level subdirectory inside `client/` (such as `client/admin/`) for an `index.js`, `index.jsx`, or `index.ts` file.
+- If not found, it looks deeper into nested directories within that client subfolder for the same kind of `index` files.
+
+#### 🧩 For the `blocks/` folder:
+
+- If a `blocks/` directory exists inside `resources/`, it will automatically compile all supported block files.
+- The output will be saved as PHP files in the `assets/blocks/` directory.
+
+> ✅ This provides seamless support for custom Gutenberg blocks.
+
+---
+
+
+
+---
+
+### 📂 Manual Entry Support
+
+You can also pass **custom file entries** as the second argument if you want to skip or override automatic discovery.
+
+```js
+module.exports = createConfig(baseConfig, {
+  'admin/settings': './custom/settings.js',
+  'admin/styles': './custom/settings.scss',
+});
+```
+
+This will create:
+
+```
+assets/scripts/admin-settings.js
+assets/styles/admin-styles.css
+```
+
+You may use this in addition to auto-discovered files — or replace all entries with manual ones if desired. Simply pass the entry object in the format:
+
+```js
+{
+  [outputName]: [sourceFilePath]
+}
+```
+
+For example:
+
+```js
+{
+  'client/frontend-dashboard': './client/frontend/dashboard/index.js',
+  'scripts/admin-init': './scripts/admin/init.ts',
+  'styles/frontend-main': './styles/frontend/main.scss',
+}
+```
+
+This gives you full control over file input/output behavior.
+
+### 🧠 File Naming & Output Logic
+
+#### ✅ `scripts/` and `styles/` directories
+
+Handled smartly based on folder name:
+
+- `scripts/admin/index.js` → `scripts/admin.js`
+- `scripts/frontend/menu.js` → `scripts/frontend-menu.js`
+- `styles/shared/forms.scss` → `styles/shared-forms.css`
+- `styles/vendor/bootstrap.scss` → `styles/vendor-bootstrap.css`
+- If a filename duplicates the folder name (`scripts/admin/admin.js`), it’s deduplicated automatically.
+
+#### ✅ `client/` entries
+
+- Output format: `client/admin-dashboard.js`, `client/frontend-settings.js`, etc.
+- For nested files, the domain (`admin`, `frontend`) is always prepended automatically.
+- Files under non-admin/frontend folders keep their full compound name (e.g. `client/shared-modal.js`)
+- The `client/` folder is intended for **React-based applications**.
+
+---
+
+### 📁 Asset Copying (Built-in)
+
+Automatically copies source assets to the correct output location:
+
+| Source                  | Destination         |
+|-------------------------|---------------------|
+| `resources/images/*.svg` | `assets/images/`     |
+| `resources/fonts/*.woff`| `assets/fonts/`      |
+
+No config required.
+
+---
+
+### 🔌 Included Plugins
+
+- [`webpackbar`](https://github.com/unjs/webpackbar) – Clean terminal output
+- [`copy-webpack-plugin`](https://www.npmjs.com/package/copy-webpack-plugin) – Images & fonts
+- [`webpack-remove-empty-scripts`](https://www.npmjs.com/package/webpack-remove-empty-scripts) – Prevent `.js` files from SCSS-only entries
+- [`moment-timezone-data-webpack-plugin`](https://www.npmjs.com/package/moment-timezone-data-webpack-plugin) – Smaller moment builds
+
+---
+
+### 👤 Author
+
+Built and maintained by [ByteEver](https://byteever.com)
+
