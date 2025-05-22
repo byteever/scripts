@@ -2,7 +2,7 @@
  * Internal dependencies
  */
 const {
-	getEntries,
+	globFiles,
 } = require('./file');
 
 const {
@@ -11,7 +11,7 @@ const {
 } = require('./process');
 
 module.exports = {
-	getEntries,
+	globFiles,
 	getArgFromCLI,
 	hasArgInCLI,
 }

@@ -9,24 +9,22 @@ const path = require( 'path' );
 /**
  * Internal dependencies
  */
-const { getEntries, hasArgInCLI, getArgFromCLI } = require( '../utils' );
+const { globFiles, hasArgInCLI, getArgFromCLI } = require( '../utils' );
 
 /**
  * Create Webpack config extending @wordpress/scripts.
  *
  * @param {Object} baseConfig - WordPress base Webpack config.
- * @param {Object} files      - List of JS or CSS/SCSS entry files.
- * @param {Object} options    - Options to pass to the config.
+ * @param {Object|Function} files      - List of JS or CSS/SCSS entry files.
  * @return {Object} Final Webpack configuration.
  */
-function createConfig( baseConfig, files = {}, options = {} ) {
+function createConfig( baseConfig, files =  x => x ) {
 	if ( ! baseConfig || typeof baseConfig !== 'object' ) {
 		throw new Error(
 			'A valid @wordpress/scripts config must be passed as the first argument.'
 		);
 	}
 
-	const shouldDiscover = options?.autoDiscovery !== false;
 	const source = hasArgInCLI( '--source-path' ) ? getArgFromCLI( '--source-path' ) : 'resources';
 	const output = hasArgInCLI( '--output-path' ) ? getArgFromCLI( '--output-path' ) : 'assets';
 	const sourcePath = path.resolve( process.cwd(), source );
@@ -36,14 +34,14 @@ function createConfig( baseConfig, files = {}, options = {} ) {
 	process.env.WP_SOURCE_PATH = source;
 	process.env.WP_COPY_PHP_FILES_TO_DIST = true;
 
-	// Auto-discover files and add to files object directly
-	if ( shouldDiscover ) {
-		getEntries( sourcePath, [
+
+	const getFiles = () => ({
+		... globFiles( sourcePath, [
 			'{scripts,styles}/*/index.{js,jsx,ts}',
 			'{scripts,styles}/*/!(_)*.{js,jsx,ts,scss,sass,css}',
 		] ).reduce( ( entries, file ) => {
 			const [ , type, domain, filename ] =
-			file.match( /resources\/([^/]+)\/([^/]+)\/([^/]+)/ ) || [];
+			file.match( new RegExp(`${source}/([^/]+)\/([^/]+)\/([^/]+)`) ) || [];
 			if ( ! type || ! domain || ! filename ) {
 				return entries;
 			}
@@ -58,13 +56,12 @@ function createConfig( baseConfig, files = {}, options = {} ) {
 					.replace( new RegExp( `\\b(${ domain })-\\1\\b` ), '$1' )
 				] = path.resolve( file );
 			return entries;
-		}, files );
-
-		getEntries( sourcePath, [
+		}, {} ),
+		...globFiles( sourcePath, [
 			'client/*/index.{js,jsx,ts}',
 			'client/*/*/index.{js,jsx,ts}',
 		] ).reduce( ( entries, file ) => {
-			const match = file.match( /resources\/client\/(.+?)\/(?:([^/]+)\/)?index\.js$/ );
+			const match = file.match( new RegExp(`${source}/client/(.+?)\/(?:([^/]+)\/)?index\\.(js|jsx|ts)$`) );
 			if ( ! match ) {
 				return entries;
 			}
@@ -76,14 +73,15 @@ function createConfig( baseConfig, files = {}, options = {} ) {
 					.replace( new RegExp( `\\b(${ type })-\\1\\b` ), '$1' )
 				] = path.resolve( file );
 			return entries;
-		}, files );
-	}
+		}, {} ),
+	})
+
 
 	return {
 		...baseConfig,
 		entry: {
 			...( typeof baseConfig.entry === 'function' ? baseConfig.entry() : baseConfig.entry ),
-			...files,
+			...( typeof files === 'function' ? files( getFiles() ) : files ) || {},
 		},
 		output: {
 			...baseConfig.output,
@@ -109,7 +107,7 @@ function createConfig( baseConfig, files = {}, options = {} ) {
 			/**
 			 * Reduces data for moment-timezone.
 			 *
-			 * @see hpps://www.npmjs.com/package/moment-timezone-data-webpack-plugin
+			 * @see https://www.npmjs.com/package/moment-timezone-data-webpack-plugin
 			 */
 			new MomentTimezoneDataPlugin( {
 				// This strips out timezone data before the year 2000 to make a smaller file.

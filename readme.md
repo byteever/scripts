@@ -72,23 +72,25 @@ This package automatically scans the `resources/` directory to detect entry poin
 
 ### 📂 Manual Entry Support
 
-You can also pass **custom file entries** as the second argument if you want to skip or override automatic discovery.
+You can optionally pass a second argument to `createConfig()` to **override or extend** the default auto-discovered entries.
+
+#### 🧰 Option 1: Replace all entries with a custom object
 
 ```js
 module.exports = createConfig(baseConfig, {
-  'admin/settings': './custom/settings.js',
-  'admin/styles': './custom/settings.scss',
+	'admin/settings': './custom/settings.js',
+	'admin/styles': './custom/settings.scss',
 });
 ```
 
-This will create:
+This disables auto-discovery and will produce:
 
 ```
 assets/scripts/admin-settings.js
 assets/styles/admin-styles.css
 ```
 
-You may use this in addition to auto-discovered files — or replace all entries with manual ones if desired. Simply pass the entry object in the format:
+#### 🧠 Format:
 
 ```js
 {
@@ -96,7 +98,7 @@ You may use this in addition to auto-discovered files — or replace all entries
 }
 ```
 
-For example:
+Example:
 
 ```js
 {
@@ -106,7 +108,22 @@ For example:
 }
 ```
 
-This gives you full control over file input/output behavior.
+#### 🧰 Option 2: Extend discovered entries using a callback
+
+Instead of replacing entries, you can extend the default ones like this:
+
+```js
+module.exports = createConfig(baseConfig, (entries) => ({
+  ...entries,
+  'scripts/chartjs': './node_modules/chart.js/dist/Chart.js',
+  'styles/jquery-ui': [
+    './node_modules/jquery-ui/themes/base/theme.css',
+    './node_modules/jquery-ui/themes/base/datepicker.css',
+  ],
+}));
+```
+
+This gives you full programmatic control to modify, filter, or merge the discovered entries before Webpack runs.
 
 ### 🧠 File Naming & Output Logic
 

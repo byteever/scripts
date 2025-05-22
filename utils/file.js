@@ -8,7 +8,7 @@ const { glob } = require('glob');
  * @param {string[]} patterns - List of glob patterns relative to baseDir
  * @returns {string[]} Matched file paths
  */
-const getEntries = (sourcePath, patterns) => {
+const globFiles = (sourcePath, patterns) => {
 	for (const pattern of patterns) {
 		const matches = glob.sync(path.join(sourcePath, pattern));
 		if (matches.length > 0) {
@@ -19,6 +19,7 @@ const getEntries = (sourcePath, patterns) => {
 	return [];
 };
 
+
 module.exports = {
-	getEntries,
+	globFiles,
 };
