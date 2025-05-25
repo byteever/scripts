@@ -9,7 +9,7 @@ const path = require( 'path' );
 /**
  * Internal dependencies
  */
-const { getEntries, hasArgInCLI, getArgFromCLI } = require( './utils' );
+const { globFiles, hasArgInCLI, getArgFromCLI } = require( './utils' );
 
 // This must go before calling `createConfig` to ensure the environment variable is set.
 process.env.WP_SOURCE_PATH = process.env.WP_SOURCE_PATH || 'resources';
@@ -18,10 +18,10 @@ process.env.WP_SOURCE_PATH = process.env.WP_SOURCE_PATH || 'resources';
  * Create Webpack config extending @wordpress/scripts.
  *
  * @param {Object} baseConfig - WordPress base Webpack config.
- * @param {Object} files      - List of JS or CSS/SCSS entry files.
+ * @param {Object|Function} files      - List of JS or CSS/SCSS entry files.
  * @return {Object} Final Webpack configuration.
  */
-function createConfig( baseConfig, files = {} ) {
+function createConfig( baseConfig, files =  x => x ) {
 	if ( ! baseConfig || typeof baseConfig !== 'object' ) {
 		throw new Error(
 			'A valid @wordpress/scripts config must be passed as the first argument.'
@@ -33,46 +33,55 @@ function createConfig( baseConfig, files = {} ) {
 	const sourcePath = path.resolve( process.cwd(), source );
 	const outputPath = path.resolve( process.cwd(), output );
 
+
+
+	const getFiles = () => ({
+		... globFiles( sourcePath, [
+			'{scripts,styles}/*/index.{js,jsx,ts}',
+			'{scripts,styles}/*/!(_)*.{js,jsx,ts,scss,sass,css}',
+		] ).reduce( ( entries, file ) => {
+			const [ , type, domain, filename ] =
+			file.match( new RegExp(`${source}/([^/]+)\/([^/]+)\/([^/]+)`) ) || [];
+			if ( ! type || ! domain || ! filename ) {
+				return entries;
+			}
+
+			const name = path.basename( filename, path.extname( filename ) );
+			entries[
+				`${ type }/${ domain }-${ name }`
+					.replace(
+						new RegExp( `^${ type }/(?!admin-|frontend-)([^-]+)-` ),
+						`${ type }/`
+					)
+					.replace( new RegExp( `\\b(${ domain })-\\1\\b` ), '$1' )
+				] = path.resolve( file );
+			return entries;
+		}, {} ),
+		...globFiles( sourcePath, [
+			'client/*/index.{js,jsx,ts}',
+			'client/*/*/index.{js,jsx,ts}',
+		] ).reduce( ( entries, file ) => {
+			const match = file.match( new RegExp(`${source}/client/(.+?)\/(?:([^/]+)\/)?index\\.(js|jsx|ts)$`) );
+			if ( ! match ) {
+				return entries;
+			}
+
+			const [ , type, name = type ] = match;
+			entries[
+				`client/${ type }-${ name }`
+					.replace( /^client\/(?!admin-|frontend-)([^-]+)-/, 'client/' )
+					.replace( new RegExp( `\\b(${ type })-\\1\\b` ), '$1' )
+				] = path.resolve( file );
+			return entries;
+		}, {} ),
+	})
+
+
 	return {
 		...baseConfig,
 		entry: {
-			...(typeof baseConfig.entry === 'function' ? baseConfig.entry() : baseConfig.entry),
-			...getEntries(sourcePath, ['{scripts,styles}/*/index.{js,jsx,ts}', '{scripts,styles}/*/!(_)*.{js,jsx,ts,scss,sass,css}'])
-				.reduce((entries, file) => {
-					const [, type, domain, filename] =
-					file.match(/resources\/([^/]+)\/([^/]+)\/([^/]+)/) || [];
-					if (!type || !domain || !filename) {
-						return entries;
-					}
-					const name = path.basename(filename, path.extname(filename));
-					entries[
-						`${type}/${domain}-${name}`
-							.replace(
-								new RegExp(`^${ type }/(?!admin-|frontend-)([^-]+)-`),
-								`${type}/`
-							)
-							.replace(new RegExp(`\\b(${ domain })-\\1\\b`), '$1')
-						] = path.resolve(file);
-					return entries;
-				}, {}),
-			...getEntries(sourcePath, ['client/*/index.{js,jsx,ts}', 'client/*/*/index.{js,jsx,ts}'])
-				.reduce((entries, file) => {
-					const match = file.match(/resources\/client\/(.+?)\/(?:([^/]+)\/)?index\.js$/);
-					if (!match) {
-						return entries;
-					}
-
-					const [, type, name = type] = match;
-
-					entries[
-						`client/${type}-${name}`
-							.replace(/^client\/(?!admin-|frontend-)([^-]+)-/, 'client/')
-							.replace(new RegExp(`\\b(${ type })-\\1\\b`), '$1')
-						] = path.resolve(file);
-
-					return entries;
-				}, {}),
-			...files,
+			...( typeof baseConfig.entry === 'function' ? baseConfig.entry() : baseConfig.entry ),
+			...( typeof files === 'function' ? files( getFiles() ) : files ) || {},
 		},
 		output: {
 			...baseConfig.output,
@@ -98,7 +107,7 @@ function createConfig( baseConfig, files = {} ) {
 			/**
 			 * Reduces data for moment-timezone.
 			 *
-			 * @see hpps://www.npmjs.com/package/moment-timezone-data-webpack-plugin
+			 * @see https://www.npmjs.com/package/moment-timezone-data-webpack-plugin
 			 */
 			new MomentTimezoneDataPlugin( {
 				// This strips out timezone data before the year 2000 to make a smaller file.
