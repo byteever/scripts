@@ -19,7 +19,6 @@ const globFiles = (sourcePath, patterns) => {
 	return [];
 };
 
-
 module.exports = {
 	globFiles,
 };

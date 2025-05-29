@@ -1,6 +1,6 @@
 const eslintConfig = {
 	root: true,
-	extends: [ 'plugin:@wordpress/eslint-plugin/recommended' ],
+	extends: ['plugin:@wordpress/eslint-plugin/recommended'],
 	globals: {
 		ajaxurl: true,
 		document: true,
@@ -8,9 +8,9 @@ const eslintConfig = {
 		lodash: true,
 		module: true,
 		process: true,
-		window: true
+		window: true,
 	},
-	plugins: [ '@wordpress' ],
+	plugins: ['@wordpress'],
 	settings: {
 		'import/core-modules': [
 			'@wordpress/block-editor',
@@ -66,12 +66,12 @@ const eslintConfig = {
 	},
 	rules: {
 		radix: 'error',
-		yoda: [ 'error', 'never' ],
+		yoda: ['error', 'never'],
 		'react/react-in-jsx-scope': 0,
 		'react/prop-types': 0,
 		'react/jsx-props-no-spreading': 0,
 		'@wordpress/dependency-group': 1,
-		'import/no-unresolved': [ 2, { ignore: [ '^@wordpress/' ] } ],
+		'import/no-unresolved': [2, { ignore: ['^@wordpress/'] }],
 		'no-shadow': 0,
 		camelcase: 0,
 		'jsdoc/require-param': 'off',

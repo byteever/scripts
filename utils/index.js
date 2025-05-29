@@ -1,17 +1,12 @@
 /**
  * Internal dependencies
  */
-const {
-	globFiles,
-} = require('./file');
+const { globFiles } = require('./file');
 
-const {
-	getArgFromCLI,
-	hasArgInCLI,
-} = require('./process');
+const { getArgFromCLI, hasArgInCLI } = require('./process');
 
 module.exports = {
 	globFiles,
 	getArgFromCLI,
 	hasArgInCLI,
-}
+};
