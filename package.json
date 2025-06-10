@@ -1,6 +1,6 @@
 {
 	"name": "@byteever/scripts",
-	"version": "2.0.6",
+	"version": "2.0.7",
 	"description": "Minimal Webpack config wrapper for WordPress plugin and theme development",
 	"main": "index.js",
 	"author": {
