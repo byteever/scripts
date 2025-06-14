@@ -19,7 +19,7 @@ function camelCaseDash( string ) {
  * @return {string} Dash-separated lowercase string.
  */
 function lowerCaseDash( string ) {
-	return string.replace( /[@\/]/g, '' ).replace( /\//g, '-' ).toLowerCase();
+	return string.replace( /@([^/]+)\//g, '$1-' ).toLowerCase();
 }
 
 /**
