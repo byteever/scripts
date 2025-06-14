@@ -1,18 +1,30 @@
 /**
  * External dependencies
  */
+const path = require( 'path' );
 const WebpackBar = require( 'webpackbar' );
 const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
 const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
-const path = require( 'path' );
+
+/**
+ * WordPress dependencies
+ */
+const DependencyExtractionWebpackPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
+
 /**
  * Internal dependencies
  */
-const { globFiles, hasArgInCLI, getArgFromCLI } = require( './utils' );
+const { globFiles, getConfig, camelCaseDash } = require( './utils' );
+
+/**
+ * Initialize configuration and environment
+ */
+const CONFIG = getConfig();
 
 // This must go before calling `createConfig` to ensure the environment variable is set.
-process.env.WP_SOURCE_PATH = process.env.WP_SOURCE_PATH || 'resources';
+process.env.WP_SOURCE_PATH = CONFIG.SOURCE_DIR;
+process.env.WP_COPY_PHP_FILES_TO_DIST = true;
 
 /**
  * Create Webpack config extending @wordpress/scripts.
@@ -28,54 +40,50 @@ function createConfig( baseConfig, files = ( x ) => x ) {
 		);
 	}
 
-	const output = hasArgInCLI( '--output-path' )
-		? getArgFromCLI( '--output-path' )
-		: 'assets';
-	const source = process.env.WP_SOURCE_PATH;
-	const sourcePath = path.resolve( process.cwd(), source );
-	const outputPath = path.resolve( process.cwd(), output );
-
-	// Allow copying PHP files to the dist directory.
-	process.env.WP_COPY_PHP_FILES_TO_DIST = true;
-
-	const getFiles = () => ( {
-		...globFiles( sourcePath, [
-			'{scripts,styles}/*/index.{js,jsx,ts}',
-			'{scripts,styles}/*/!(_)*.{js,jsx,ts,scss,sass,css}',
-		] ).reduce( ( entries, file ) => {
-			const [ , type, domain, filename ] =
-			file.match( new RegExp( `${ source }/([^/]+)\/([^/]+)\/([^/]+)` ) ) ||
-			[];
-			if ( ! type || ! domain || ! filename ) {
-				return entries;
-			}
-
+	const getEntries = () => ( {
+		...globFiles( CONFIG.SOURCE_PATH, CONFIG.ENTRY_PATTERNS.SCRIPTS ).reduce( ( entries, file ) => {
+			const [ , subdirectory, filename ] = file.match( /\/scripts\/(?:([^/]+)\/)?([^/]+\.(js|jsx|ts))$/ );
 			const name = path.basename( filename, path.extname( filename ) );
-			entries[
-				`${ type }/${ domain }-${ name }`
-					.replace(
-						new RegExp( `^${ type }/(?!admin-|frontend-)([^-]+)-` ),
-						`${ type }/`
-					)
-					.replace( new RegExp( `\\b(${ domain })-\\1\\b` ), '$1' )
-				] = path.resolve( file );
+			const entryName = `scripts/${ [ subdirectory, name ].filter( Boolean ).join( '-' ) }`
+				.replace( /^scripts\/(?!admin-|frontend-)([^-]+)-/, 'scripts/' )
+				.replace( new RegExp( `\\b(${ subdirectory })-\\1\\b` ), '$1' );
+
+			entries[ entryName ] = path.resolve( file );
 			return entries;
 		}, {} ),
-		...globFiles( sourcePath, [
-			'client/index.{js,jsx,ts}',
-			'client/*/index.{js,jsx,ts}',
-		] ).reduce( ( entries, file ) => {
-			const match = file.match(
-				new RegExp(
-					`${ source }/client/(?:([^/]+)/)?index\\.(js|jsx|ts)$`
-				)
-			);
+		...globFiles( CONFIG.SOURCE_PATH, CONFIG.ENTRY_PATTERNS.STYLES ).reduce( ( entries, file ) => {
+			const [ , subdirectory, filename ] = file.match( /\/styles\/(?:([^/]+)\/)?([^/]+\.(scss|sass|css))$/ );
+			const name = path.basename( filename, path.extname( filename ) );
+			const entryName = `styles/${ [ subdirectory, name ].filter( Boolean ).join( '-' ) }`
+				.replace( /^styles\/(?!admin-|frontend-)([^-]+)-/, 'styles/' )
+				.replace( new RegExp( `\\b(${ subdirectory })-\\1\\b` ), '$1' );
 
-			const [ , type ] = match;
-			const entryName = type || 'index';
+			entries[ entryName ] = path.resolve( file );
+			return entries;
+		}, {} ),
+		...globFiles( CONFIG.SOURCE_PATH, CONFIG.ENTRY_PATTERNS.CLIENT ).reduce( ( entries, file ) => {
+			const [ , entryName = 'index' ] = file.match( /\/client\/(?:([^/]+)\/)?index\.(js|jsx|ts)$/ );
 			entries[ `client/${ entryName }` ] = path.resolve( file );
 			return entries;
 		}, {} ),
+		...globFiles( CONFIG.SOURCE_PATH, CONFIG.ENTRY_PATTERNS.PACKAGES ).reduce( ( entries, file ) => {
+			const [ , packageName ] = file.match( /\/packages\/(.+?)\/src\/index\.(js|jsx|ts)$/ );
+
+			const entryName = `packages/${ packageName }`;
+			entries[ entryName ] = {
+				import: path.resolve( file ),
+				library: {
+					name: [
+						CONFIG.PROJECT_EXTERNAL,
+						camelCaseDash( packageName ),
+					],
+					type: 'window',
+				},
+			};
+			return entries;
+		},
+		{}
+		),
 	} );
 
 	return {
@@ -84,22 +92,17 @@ function createConfig( baseConfig, files = ( x ) => x ) {
 			...( typeof baseConfig.entry === 'function'
 				? baseConfig.entry()
 				: baseConfig.entry ),
-			...( ( typeof files === 'function' ? files( getFiles() ) : files ) ||
+			...( ( typeof files === 'function' ? files( getEntries() ) : files ) ||
 				{} ),
 		},
 		output: {
 			...baseConfig.output,
-			path: outputPath,
+			path: CONFIG.OUTPUT_PATH,
 			chunkFilename: 'chunks/[name].js',
 		},
 		resolve: {
 			...baseConfig.resolve,
 			modules: [ path.resolve( process.cwd(), 'node_modules' ) ],
-			alias: {
-				...baseConfig.resolve.alias,
-				'@components': path.resolve( process.cwd(), `${ source }/client/shared/components` ),
-				'@utils': path.resolve( process.cwd(), `${ source }/client/shared/utils` ),
-			},
 		},
 		externals: {
 			...baseConfig.externals,
@@ -118,7 +121,30 @@ function createConfig( baseConfig, files = ( x ) => x ) {
 			version: false,
 		},
 		plugins: [
-			...baseConfig.plugins,
+			...baseConfig.plugins.filter( ( plugin ) => plugin.constructor.name !== 'DependencyExtractionWebpackPlugin' ),
+
+			/**
+			 * Extracts dependencies from the build and generates a PHP file
+			 *
+			 * @see https://www.npmjs.com/package/@wordpress/dependency-extraction-webpack-plugin
+			 */
+			new DependencyExtractionWebpackPlugin( {
+				requestToExternal( request ) {
+					if ( request.endsWith( '.css' ) ) {
+						return false;
+					}
+
+					if ( request.startsWith( CONFIG.PROJECT_NAMESPACE ) ) {
+						return [ CONFIG.PROJECT_EXTERNAL, camelCaseDash( request.substring( CONFIG.PROJECT_NAMESPACE.length ) ),
+						];
+					}
+				},
+				requestToHandle( request ) {
+					if ( request.startsWith( CONFIG.PROJECT_NAMESPACE ) ) {
+						return `${ CONFIG.PROJECT_HANDLE }-${ request.substring( CONFIG.PROJECT_NAMESPACE.length ) }`;
+					}
+				},
+			} ),
 
 			/**
 			 * Reduces data for moment-timezone.
@@ -136,20 +162,7 @@ function createConfig( baseConfig, files = ( x ) => x ) {
 			 * @see https://www.npmjs.com/package/copy-webpack-plugin
 			 */
 			new CopyWebpackPlugin( {
-				patterns: [
-					{
-						from: 'images/**/*.{jpg,jpeg,png,gif,svg}',
-						to: 'images/[name][ext]',
-						context: sourcePath,
-						noErrorOnMissing: true,
-					},
-					// Fonts in the src/fonts directory to the assets/fonts directory.
-					{
-						from: 'fonts/**/*.{woff,woff2,eot,ttf,otf}',
-						context: sourcePath,
-						noErrorOnMissing: true,
-					},
-				],
+				patterns: CONFIG.COPY_PATTERNS,
 			} ),
 
 			/**
