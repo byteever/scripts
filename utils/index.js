@@ -1,21 +1,15 @@
 /**
  * Internal dependencies
  */
-const { globFiles } = require( './file' );
-
-const { getArgFromCLI, hasArgInCLI } = require( './process' );
-const { getPackageProp, hasPackageProp } = require( './package' );
-const { camelCaseDash, formatNamespace, lowerCaseDash } = require( './strings' );
-const { getConfig } = require( './webpack' );
+const { getAssets, getPackages } = require( './entry' );
+const { getPackageProp } = require( './package' );
+const { camelCaseDash } = require( './strings' );
+const { getConfig } = require( './config' );
 
 module.exports = {
-	globFiles,
-	getArgFromCLI,
-	hasArgInCLI,
-	getPackageProp,
-	hasPackageProp,
 	camelCaseDash,
-	lowerCaseDash,
-	formatNamespace,
+	getAssets,
 	getConfig,
+	getPackageProp,
+	getPackages,
 };

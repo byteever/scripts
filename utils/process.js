@@ -1,34 +1,35 @@
-const getAsBooleanFromENV = ( name ) => {
-	const value = process.env[ name ];
-	return !! value && value !== 'false' && value !== '0';
-};
-
-const getArgsFromCLI = ( excludePrefixes ) => {
-	const args = process.argv.slice( 2 );
-	if ( excludePrefixes ) {
-		return args.filter( ( arg ) => {
-			return ! excludePrefixes.some( ( prefix ) => arg.startsWith( prefix ) );
-		} );
-	}
-	return args;
-};
-
+/**
+ * Get specific argument value from command line with enhanced parsing.
+ *
+ * @param {string} arg - Argument name to search for
+ * @return {string|null} Argument value or null if not found
+ * @example
+ * getArgFromCLI('--mode') // 'development' (from --mode=development)
+ * getArgFromCLI('--verbose') // null (from --verbose flag)
+ */
 const getArgFromCLI = ( arg ) => {
-	for ( const cliArg of getArgsFromCLI() ) {
+	const args = process.argv.slice( 2 );
+	for ( const cliArg of args ) {
 		const [ name, value ] = cliArg.split( '=' );
 		if ( name === arg ) {
 			return value || null;
 		}
 	}
+	return undefined;
 };
 
+/**
+ * Check if argument exists in command line.
+ *
+ * @param {string} arg - Argument name to check
+ * @return {boolean} True if argument exists
+ * @example
+ * hasArgInCLI('--verbose') // true
+ * hasArgInCLI('--missing') // false
+ */
 const hasArgInCLI = ( arg ) => getArgFromCLI( arg ) !== undefined;
 
 module.exports = {
-	exit: process.exit,
-	getAsBooleanFromENV,
-	getArgsFromCLI,
 	getArgFromCLI,
 	hasArgInCLI,
-	getCurrentWorkingDirectory: process.cwd,
 };
