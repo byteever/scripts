@@ -60,9 +60,25 @@ const readPackageFromDirectory = ( cwd ) => {
 	}
 };
 
+/**
+ * Get configuration from package.json for a specific directory.
+ * Similar to getPackageProp but for a specific directory context.
+ *
+ * @param {string} cwd - Directory path to search for package.json
+ * @param {string} prop - Property name to retrieve
+ * @return {*} Property value or undefined if not found
+ * @example
+ * getPackagePropFromDirectory('/path/to/package', 'name') // 'my-package'
+ */
+const getPackagePropFromDirectory = ( cwd, prop ) => {
+	const packageData = readPackageFromDirectory( cwd );
+	return packageData?.packageJson?.[ prop ];
+};
+
 module.exports = {
 	getPackagePath,
 	getPackageProp,
 	hasPackageProp,
 	readPackageFromDirectory,
+	getPackagePropFromDirectory,
 };
