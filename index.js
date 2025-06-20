@@ -83,7 +83,7 @@ const createConfig = ( baseConfig, files = ( x ) => x ) => {
 		},
 		resolve: {
 			...baseConfig.resolve,
-			modules: [ path.join( CONFIG.SOURCE_PATH, 'node_modules' ) ],
+			modules: [ path.join( process.cwd(), 'node_modules' ), path.join( CONFIG.SOURCE_PATH, 'node_modules' ) ],
 		},
 		externals: {
 			...baseConfig.externals,
@@ -188,8 +188,6 @@ const createConfig = ( baseConfig, files = ( x ) => x ) => {
 			} )
 		);
 	}
-
-	// console.log( 'config', config );
 
 	return config;
 };
