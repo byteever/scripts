@@ -20,10 +20,12 @@ const {
 	getPackages,
 	getConfig,
 	camelCaseDash,
+	getPackageProp,
 } = require( './utils' );
 
 // This must be set for WordPress scripts compatibility
 process.env.WP_COPY_PHP_FILES_TO_DIST = true;
+process.env.WP_SOURCE_PATH = getPackageProp( '@byteever/scripts' )?.sourcePath || 'resources';
 
 /**
  * Create optimized Webpack config extending @wordpress/scripts.
