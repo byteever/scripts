@@ -1,91 +1,72 @@
 /**
  * External dependencies
  */
-const path = require( 'path' );
-const WebpackBar = require( 'webpackbar' );
-const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
-const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
-const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
-
-/**
- * WordPress dependencies
- */
-const DependencyExtractionWebpackPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
+const path = require('path');
+const { merge } = require('webpack-merge');
+const WebpackBar = require('webpackbar');
+const MomentTimezoneDataPlugin = require('moment-timezone-data-webpack-plugin');
+const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 /**
  * Internal dependencies
  */
 const {
-	getAssets,
-	getPackages,
-	getConfig,
-	camelCaseDash,
-	getPackageProp,
-} = require( './utils' );
+	hasArgInCLI,
+} = require('./utils');
 
 // This must be set for WordPress scripts compatibility
 process.env.WP_COPY_PHP_FILES_TO_DIST = true;
-process.env.WP_SOURCE_PATH = getPackageProp( '@byteever/scripts' )?.sourcePath || 'resources';
+if (!hasArgInCLI('--source-path')) {
+	process.env.WP_SOURCE_PATH = 'resources';
+}
+if (!hasArgInCLI('--output-path')) {
+	process.env.WP_OUTPUT_PATH = 'assets';
+}
 
 /**
  * Create optimized Webpack config extending @wordpress/scripts.
  * Processes assets, packages, and applies performance optimizations.
  *
- * @param {Object}          baseConfig - WordPress base Webpack config (required)
- * @param {Object|Function} files      - Entry files config or transformer function
- * @return {Object} Enhanced Webpack configuration object
- * @throws {Error} When baseConfig is invalid
+ * @param {Object}          baseConfig - WordPress base Webpack config (required).
+ * @param {Object|Function} [overrides] - Extra entries object OR a function(config) => partialConfig.
+ * @return {Object} Enhanced Webpack configuration object.
+ * @throws {Error} When baseConfig is invalid.
+ *
  * @example
- * const config = createConfig(wpConfig, { 'app': './src/app.js' });
- * const config = createConfig(wpConfig, (entries) => ({ ...entries, custom: './custom.js' }));
+ * module.exports = createConfig(wpConfig, { 'app': './src/app.js' });
+ * module.exports = createConfig(wpConfig, (config) => ({ devtool: 'source-map' }));
  */
-const createConfig = ( baseConfig, files = ( x ) => x ) => {
-	if ( ! baseConfig || typeof baseConfig !== 'object' ) {
+const createConfig = (baseConfig, overrides ) => {
+	if (!baseConfig || typeof baseConfig !== 'object') {
 		throw new Error(
 			'A valid @wordpress/scripts config must be passed as the first argument.'
 		);
 	}
 
-	// Get configuration based on the context directory
-	const CONFIG = getConfig( baseConfig?.context || process.cwd() );
+	const ROOT_PATH    = process.cwd();
+	const CONTEXT_PATH = baseConfig.context || ROOT_PATH;
+	const SOURCE_PATH  = path.resolve(CONTEXT_PATH, process.env.WP_SOURCE_PATH || 'src');
+	const OUTPUT_PATH  = path.resolve(CONTEXT_PATH, process.env.WP_OUTPUT_PATH || 'build');
+
 
 	// Set the source path early for WordPress scripts block detection
-	process.env.WP_SOURCE_PATH = CONFIG.SOURCE_DIR;
+	process.env.WP_SOURCE_PATH = path.relative(ROOT_PATH, SOURCE_PATH);
 
-	// Build the list of packages based on the configured patterns
-	const packages = getPackages( CONFIG.SOURCE_PATH, CONFIG.PACKAGE_PATTERNS );
-
-	const getEntries = () => ( {
-		...getAssets( CONFIG.SOURCE_PATH, CONFIG.ASSET_PATTERNS ),
-		...packages.reduce( ( acc, pkg ) => {
-			const relativePath = path.relative( CONFIG.SOURCE_PATH, pkg.path );
-			const entryName = `${ relativePath.split( path.sep )[ 0 ] }/${ pkg.packageName }`;
-			acc[ entryName ] = {
-				import: path.resolve( pkg.main ),
-				library: {
-					name: [ pkg.externalName, camelCaseDash( pkg.packageName ) ],
-					type: 'window',
-				},
-			};
-			return acc;
-		}, {} ),
-	} );
-
-	const config = {
+	let config = {
 		...baseConfig,
-		entry: {
-			...( typeof baseConfig.entry === 'function' ? baseConfig.entry() : baseConfig.entry ),
-			...( typeof files === 'function' ? files( getEntries() ) : files ) || {},
-		},
 		output: {
 			...baseConfig.output,
-			path: path.resolve( CONFIG.OUTPUT_PATH ),
+			path: path.resolve( OUTPUT_PATH ),
 			chunkFilename: 'chunks/[name].js',
 			enabledLibraryTypes: [ 'window', 'commonjs' ],
 		},
 		resolve: {
 			...baseConfig.resolve,
-			modules: [ path.join( process.cwd(), 'node_modules' ), path.join( CONFIG.SOURCE_PATH, 'node_modules' ) ],
+			modules: [
+				path.join( ROOT_PATH, 'node_modules' ),
+				path.join( SOURCE_PATH, 'node_modules' )
+			],
 		},
 		externals: {
 			...baseConfig.externals,
@@ -105,6 +86,27 @@ const createConfig = ( baseConfig, files = ( x ) => x ) => {
 		},
 		plugins: [
 			...baseConfig.plugins.filter( Boolean ),
+
+			/**
+			 * Copy source files/directories to a build directory.
+			 *
+			 * @see https://www.npmjs.com/package/copy-webpack-plugin
+			 */
+			new CopyWebpackPlugin( {
+				patterns: [
+					{
+						from: 'images/**/*.{jpg,jpeg,png,gif,svg}',
+						to: 'images/[name][ext]',
+						context: SOURCE_PATH,
+						noErrorOnMissing: true,
+					},
+					{
+						from: 'fonts/**/*.{woff,woff2,eot,ttf,otf,css}',
+						context: SOURCE_PATH,
+						noErrorOnMissing: true,
+					},
+				]
+			} ),
 
 			/**
 			 * Reduces data for moment-timezone.
@@ -132,63 +134,23 @@ const createConfig = ( baseConfig, files = ( x ) => x ) => {
 			 */
 			new WebpackBar(),
 		],
-	};
-
-	// Conditionally add DependencyExtractionWebpackPlugin if packages exist
-	if ( packages.length > 0 ) {
-		// Filter out any existing DependencyExtractionWebpackPlugin and add our custom one
-		config.plugins = config.plugins
-			.filter( ( plugin ) => plugin.constructor.name !== 'DependencyExtractionWebpackPlugin' )
-			.concat( [
-				/**
-				 * Extracts dependencies from the build and generates a PHP file
-				 *
-				 * @see https://www.npmjs.com/package/@wordpress/dependency-extraction-webpack-plugin
-				 */
-				new DependencyExtractionWebpackPlugin( {
-					requestToExternal( request ) {
-						if ( request.endsWith( '.css' ) ) {
-							return;
-						}
-
-						const pkg = packages.find( ( p ) => request.startsWith( p.namespace ) );
-						if ( ! pkg ) {
-							return;
-						}
-
-						const subName = request.substring( pkg.namespace.length );
-						return [ pkg.externalName, camelCaseDash( subName ) ];
-					},
-
-					requestToHandle( request ) {
-						if ( request.endsWith( '.css' ) ) {
-							return;
-						}
-
-						const pkg = packages.find( ( p ) => request.startsWith( p.namespace ) );
-						if ( ! pkg ) {
-							return;
-						}
-
-						const subName = request.substring( pkg.namespace.length );
-						return `${ pkg.handleName }-${ subName }`;
-					},
-				} ),
-			] );
 	}
 
-	// Conditionally add CopyWebpackPlugin if copy patterns exist
-	if ( CONFIG.COPY_PATTERNS?.length > 0 ) {
-		config.plugins.push(
-			/**
-			 * Copy source files/directories to a build directory.
-			 *
-			 * @see https://www.npmjs.com/package/copy-webpack-plugin
-			 */
-			new CopyWebpackPlugin( {
-				patterns: CONFIG.COPY_PATTERNS,
-			} )
-		);
+
+	if ( overrides ) {
+		if ( typeof overrides === 'function' ) {
+			const customConfig = overrides(config);
+			if ( typeof customConfig !== 'object' || customConfig === null ) {
+				throw new Error('Override function must return a valid config object.');
+			}
+			config = merge(config, customConfig);
+		} else if ( typeof overrides === 'object' && !Array.isArray(overrides) ) {
+			config = merge(config, {
+				entry: overrides
+			});
+		} else {
+			throw new Error('Overrides must be an object or function.');
+		}
 	}
 
 	return config;

@@ -30,9 +30,8 @@
 		"update": "npx npm-check-updates -u && npm install"
 	},
 	"dependencies": {
-		"@wordpress/dependency-extraction-webpack-plugin": "^6.25.0",
-		"copy-webpack-plugin": "^13.0.0",
-		"fs": "^0.0.1-security",
+		"@wordpress/dependency-extraction-webpack-plugin": "^6.31.0",
+		"copy-webpack-plugin": "^13.0.1",
 		"glob": "^11.0.3",
 		"moment-timezone-data-webpack-plugin": "^1.5.1",
 		"path": "^0.12.7",
@@ -41,7 +40,7 @@
 		"webpackbar": "^7.0.0"
 	},
 	"devDependencies": {
-		"@wordpress/eslint-plugin": "^22.11.0",
-		"@wordpress/prettier-config": "^4.25.0"
+		"@wordpress/eslint-plugin": "^22.17.0",
+		"@wordpress/prettier-config": "^4.31.0"
 	}
 }
