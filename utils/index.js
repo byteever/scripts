@@ -1,15 +1,9 @@
-/**
- * Internal dependencies
- */
-const { getPackageProp } = require('./package');
 const { getArgFromCLI, hasArgInCLI } = require('./process');
-const { camelCaseDash } = require('./strings');
-const { getConfig } = require('./config');
+const { getNodeArgsFromCLI, spawnScript } = require('./cli');
 
 module.exports = {
-	camelCaseDash,
-	getConfig,
-	getPackageProp,
 	getArgFromCLI,
 	hasArgInCLI,
+	getNodeArgsFromCLI,
+	spawnScript,
 };
