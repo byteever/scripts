@@ -1,7 +1,7 @@
 module.exports = ( environment = '', file ) => {
 	const callerOpts = {
 		caller: {
-			name: `WP_BUILD_${ environment.toUpperCase() }`,
+			name: `BYTEEVER_BUILD_${ environment.toUpperCase() }`,
 		},
 	};
 
