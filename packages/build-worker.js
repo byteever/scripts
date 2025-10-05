@@ -124,10 +124,13 @@ async function buildJS( file ) {
 }
 
 async function buildJSON( file ) {
-	const destPath = getBuildPath( file, 'build' );
-	await makeDir( path.dirname( destPath ) );
 	const contents = await readFile( file, 'utf8' );
-	await writeFile( destPath, contents );
+
+	for ( const [ , buildDir ] of Object.entries( JS_ENVIRONMENTS ) ) {
+		const destPath = getBuildPath( file, buildDir );
+		await makeDir( path.dirname( destPath ) );
+		await writeFile( destPath, contents );
+	}
 }
 
 const BUILD_TASK_BY_EXTENSION = {

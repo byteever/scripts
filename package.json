@@ -1,6 +1,6 @@
 {
 	"name": "@byteever/scripts",
-	"version": "2.2.1",
+	"version": "2.2.2",
 	"description": "Build tools for WordPress plugins and themes - Webpack config wrapper and package transpilation",
 	"license": "MIT",
 	"author": {
