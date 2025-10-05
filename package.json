@@ -1,85 +1,81 @@
 {
-	"name": "@byteever/scripts",
-	"version": "2.2.2",
-	"description": "Build tools for WordPress plugins and themes - Webpack config wrapper and package transpilation",
-	"license": "MIT",
-	"author": {
-		"name": "sultann",
-		"email": "sultan@byteever.com",
-		"url": "https://byteever.com"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/byteever/scripts.git"
-	},
-	"keywords": [
-		"webpack",
-		"wordpress",
-		"config",
-		"plugin",
-		"theme",
-		"build",
-		"monorepo",
-		"packages",
-		"babel",
-		"typescript"
-	],
-	"engines": {
-		"node": ">=18"
-	},
-	"main": "index.js",
-	"bin": {
-		"byteever-scripts": "bin/byteever-scripts.js"
-	},
-	"files": [
-		"bin",
-		"config",
-		"packages",
-		"scripts",
-		"utils",
-		"index.js",
-		"readme.md"
-	],
-	"publishConfig": {
-		"access": "public"
-	},
-	"scripts": {
-		"update": "npx npm-check-updates -u && npm install"
-	},
-	"dependencies": {
-		"@babel/core": "^7.28.4",
-		"@wordpress/babel-preset-default": "^8.31.0",
-		"@wordpress/dependency-extraction-webpack-plugin": "^6.31.0",
-		"chalk": "^4.1.2",
-		"copy-webpack-plugin": "^13.0.1",
-		"fast-glob": "^3.3.3",
-		"glob": "^11.0.3",
-		"make-dir": "^3.1.0",
-		"moment-timezone-data-webpack-plugin": "^1.5.1",
-		"node-watch": "^0.7.4",
-		"path": "^0.12.7",
-		"postcss": "^8.5.6",
-		"postcss-local-keyframes": "^0.0.2",
-		"progress": "^2.0.3",
-		"read-package-up": "^11.0.0",
-		"rtlcss": "^4.3.0",
-		"sass": "^1.93.2",
-		"typescript": "^5.9.3",
-		"webpack-merge": "^6.0.1",
-		"webpack-remove-empty-scripts": "^1.1.1",
-		"webpackbar": "^7.0.0",
-		"worker-farm": "^1.7.0"
-	},
-	"peerDependencies": {
-		"@wordpress/postcss-plugins-preset": "^5.0.0"
-	},
-	"peerDependenciesMeta": {
-		"@wordpress/postcss-plugins-preset": {
-			"optional": true
-		}
-	},
-	"devDependencies": {
-		"@wordpress/eslint-plugin": "^22.17.0",
-		"@wordpress/prettier-config": "^4.31.0"
-	}
+    "name": "@byteever/scripts",
+    "version": "2.2.2",
+    "description": "Build tools for WordPress plugins and themes - Webpack config wrapper and package transpilation",
+    "license": "MIT",
+    "author": {
+        "name": "sultann",
+        "email": "sultan@byteever.com",
+        "url": "https://byteever.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/byteever/scripts.git"
+    },
+    "keywords": [
+        "webpack",
+        "wordpress",
+        "config",
+        "plugin",
+        "theme",
+        "build",
+        "monorepo",
+        "packages",
+        "babel",
+        "typescript"
+    ],
+    "engines": {
+        "node": ">=18"
+    },
+    "main": "index.js",
+    "bin": {
+        "byteever-scripts": "bin/byteever-scripts.js"
+    },
+    "files": [
+        "bin",
+        "config",
+        "packages",
+        "scripts",
+        "utils",
+        "index.js",
+        "readme.md"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "update": "npx npm-check-updates -x 'chalk,make-dir' -u && npm install",
+		"audit": "npm audit --audit-level=high"
+    },
+    "dependencies": {
+        "@babel/core": "^7.28.4",
+        "@wordpress/babel-preset-default": "^8.32.0",
+        "chalk": "^4.1.2",
+        "copy-webpack-plugin": "^13.0.1",
+        "fast-glob": "^3.3.3",
+        "make-dir": "^3.1.0",
+        "moment-timezone-data-webpack-plugin": "^1.5.1",
+        "node-watch": "^0.7.4",
+        "postcss": "^8.5.6",
+        "postcss-local-keyframes": "^0.0.2",
+        "progress": "^2.0.3",
+        "rtlcss": "^4.3.0",
+        "sass": "^1.93.2",
+        "typescript": "^5.9.3",
+        "webpack-merge": "^6.0.1",
+        "webpack-remove-empty-scripts": "^1.1.1",
+        "webpackbar": "^7.0.0",
+        "worker-farm": "^1.7.0"
+    },
+    "peerDependencies": {
+        "@wordpress/postcss-plugins-preset": "^5.0.0"
+    },
+    "peerDependenciesMeta": {
+        "@wordpress/postcss-plugins-preset": {
+            "optional": true
+        }
+    },
+    "devDependencies": {
+        "@wordpress/prettier-config": "^4.32.0"
+    }
 }

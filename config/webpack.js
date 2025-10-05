@@ -51,6 +51,10 @@ const createConfig = (baseConfig, overrides ) => {
 
 	let config = {
 		...baseConfig,
+		entry: {
+			...( typeof baseConfig.entry === 'function' ? baseConfig.entry() : baseConfig.entry ),
+			...( ( typeof overrides === 'object' && !Array.isArray(overrides) ) ? overrides : {} ),
+		},
 		output: {
 			...baseConfig.output,
 			path: path.resolve( OUTPUT_PATH ),
@@ -132,22 +136,13 @@ const createConfig = (baseConfig, overrides ) => {
 		],
 	}
 
-	if ( overrides ) {
-		if ( typeof overrides === 'function' ) {
-			const customConfig = overrides(config);
-			if ( typeof customConfig !== 'object' || customConfig === null ) {
-				throw new Error('Override function must return a valid config object.');
-			}
-			config = merge(config, customConfig);
-		} else if ( typeof overrides === 'object' && !Array.isArray(overrides) ) {
-			config = merge(config, {
-				entry: overrides
-			});
-		} else {
-			throw new Error('Overrides must be an object or function.');
+	if ( typeof overrides === 'function' ) {
+		const customConfig = overrides(config);
+		if ( typeof customConfig !== 'object' || customConfig === null ) {
+			throw new Error('Override function must return a valid config object.');
 		}
+		config = merge(config, customConfig);
 	}
-
 	return config;
 };
 
