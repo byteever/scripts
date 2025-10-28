@@ -15,10 +15,10 @@ const { hasArgInCLI } = require('../utils');
 
 process.env.WP_COPY_PHP_FILES_TO_DIST = true;
 if (!hasArgInCLI('--source-path')) {
-	process.env.WP_SOURCE_PATH = 'resources';
+	process.env.WP_SOURCE_PATH = 'assets/src';
 }
 if (!hasArgInCLI('--output-path')) {
-	process.env.WP_OUTPUT_PATH = 'assets';
+	process.env.WP_OUTPUT_PATH = 'assets/build';
 }
 
 /**
@@ -31,7 +31,7 @@ if (!hasArgInCLI('--output-path')) {
  * @throws {Error} When baseConfig is invalid.
  *
  * @example
- * module.exports = createConfig(wpConfig, { 'app': './src/app.js' });
+ * module.exports = createConfig(wpConfig, { 'app': './assets/src/app.js' });
  * module.exports = createConfig(wpConfig, (config) => ({ devtool: 'source-map' }));
  */
 const createConfig = (baseConfig, overrides ) => {

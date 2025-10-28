@@ -8,7 +8,7 @@
 
 ### Webpack Configuration
 - Extends `@wordpress/scripts` with intelligent defaults
-- Customizable source/output paths (defaults: `resources/` → `assets/`)
+- Customizable source/output paths (defaults: `assets/src/` → `assets/build/`)
 - Auto-copy images and fonts
 - Bundle optimization (removes empty scripts, trims timezone data)
 - Clean progress reporting with WebpackBar
@@ -49,8 +49,8 @@ module.exports = createConfig(baseConfig);
 
 ```js
 module.exports = createConfig(baseConfig, {
-  'client/index': './resources/client/index.js',
-  'admin/settings': './resources/admin/settings.js',
+  'client/index': './assets/src/client/index.js',
+  'admin/settings': './assets/src/admin/settings.js',
 });
 ```
 
@@ -134,7 +134,9 @@ project/
 │       ├── package.json        # Has "module" field
 │       ├── build/
 │       └── build-module/
-├── resources/                   # Webpack assets
+├── assets/
+│   ├── src/                    # JS/CSS source
+│   └── build/                  # Compiled output
 ├── webpack.config.js
 └── package.json
 ```
@@ -207,8 +209,8 @@ packages/components/
 
 ## Environment Variables
 
-- `WP_SOURCE_PATH` - Source directory (default: `resources`)
-- `WP_OUTPUT_PATH` - Output directory (default: `assets`)
+- `WP_SOURCE_PATH` - Source directory (default: `assets/src`)
+- `WP_OUTPUT_PATH` - Output directory (default: `assets/build`)
 - `NODE_ENV` - Set to `development` to build only ESM for packages
 
 ---
@@ -286,7 +288,7 @@ const createConfig = require('@byteever/scripts');
 const baseConfig = require('@wordpress/scripts/config/webpack.config');
 
 module.exports = createConfig(baseConfig, {
-  'client/index': './resources/client/index.js',
+  'client/index': './assets/src/client/index.js',
 });
 ```
 
