@@ -1,6 +1,6 @@
 {
     "name": "@byteever/scripts",
-    "version": "3.0.1",
+    "version": "3.0.2",
     "description": "Build tools for WordPress plugins and themes - Webpack config wrapper and package transpilation",
     "license": "MIT",
     "author": {
@@ -25,7 +25,8 @@
         "typescript"
     ],
     "engines": {
-        "node": ">=18"
+		"node": ">=18.12.0",
+		"npm": ">=8.19.2"
     },
     "main": "index.js",
     "bin": {
@@ -34,6 +35,7 @@
     "files": [
         "bin",
         "config",
+		"plugins",
         "packages",
         "scripts",
         "utils",
