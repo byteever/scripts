@@ -1,6 +1,6 @@
 {
     "name": "@byteever/scripts",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "description": "Build tools for WordPress plugins and themes - Webpack config wrapper and package transpilation",
     "license": "MIT",
     "author": {
@@ -48,8 +48,8 @@
 		"audit": "npm audit --audit-level=high"
     },
     "dependencies": {
-        "@babel/core": "^7.28.4",
-        "@wordpress/babel-preset-default": "^8.32.0",
+        "@babel/core": "^7.28.5",
+        "@wordpress/babel-preset-default": "^8.34.0",
         "chalk": "^4.1.2",
         "copy-webpack-plugin": "^13.0.1",
         "fast-glob": "^3.3.3",
@@ -67,15 +67,15 @@
         "webpackbar": "^7.0.0",
         "worker-farm": "^1.7.0"
     },
+	"devDependencies": {
+		"@wordpress/prettier-config": "^4.34.0"
+	},
     "peerDependencies": {
-        "@wordpress/postcss-plugins-preset": "^5.0.0"
+        "@wordpress/postcss-plugins-preset": ">=5"
     },
     "peerDependenciesMeta": {
         "@wordpress/postcss-plugins-preset": {
             "optional": true
         }
-    },
-    "devDependencies": {
-        "@wordpress/prettier-config": "^4.32.0"
     }
 }

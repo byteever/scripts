@@ -7,6 +7,8 @@ const WebpackBar = require('webpackbar');
 const MomentTimezoneDataPlugin = require('moment-timezone-data-webpack-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const RtlChunkCleanupPlugin = require('../plugins/rtl-chunk-cleanup');
 
 /**
  * Internal dependencies
@@ -84,8 +86,25 @@ const createConfig = (baseConfig, overrides ) => {
 			timings: true,
 			version: false,
 		},
+		optimization: {
+			...baseConfig.optimization,
+			splitChunks: {
+				...baseConfig.optimization.splitChunks,
+				cacheGroups: {
+					...baseConfig.optimization.splitChunks.cacheGroups,
+					styles: {
+						type: 'css/mini-extract',
+						chunks: 'all',
+						enforce: true,
+						priority: 10,
+						minChunks: 2,
+						name: false,
+					}
+				},
+			},
+		},
 		plugins: [
-			...baseConfig.plugins.filter( Boolean ),
+			...baseConfig.plugins.filter((p) => p && p.constructor && p.constructor.name !== 'MiniCssExtractPlugin').filter(Boolean),
 
 			/**
 			 * Copy source files/directories to a build directory.
@@ -126,6 +145,20 @@ const createConfig = (baseConfig, overrides ) => {
 				stage: RemoveEmptyScriptsPlugin.STAGE_AFTER_PROCESS_PLUGINS,
 				remove: /\.(js)$/,
 			} ),
+
+			/**
+			 * Extract CSS into separate files with chunk CSS emitted to chunks/.
+			 * Replaces WordPress's default to add chunkFilename configuration.
+			 *
+			 * @see https://github.com/webpack-contrib/mini-css-extract-plugin
+			 */
+			new MiniCssExtractPlugin({ filename: '[name].css', chunkFilename: 'chunks/[name].css' }),
+
+			/**
+			 * Removes RTL CSS files generated for chunks.
+			 * WordPress's RtlCssPlugin creates RTL for all CSS, but we only want it for entry points.
+			 */
+			new RtlChunkCleanupPlugin(),
 
 			/**
 			 * Show progressbar for cleaner build output.
