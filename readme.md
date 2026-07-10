@@ -6,8 +6,8 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 
 - Source at `assets/src/`, output at `assets/build/` — no flags, no config.
 - Copies block `block.json` and PHP files (`render.php`) into the build.
-- Exports what webpack consumes: the config object, or `[ scripts, modules ]` when `--experimental-modules` is on.
-- Entries are declared explicitly in `package.json` under `byteever.entries`; block entries come from `block.json`.
+- One builder call returns what webpack consumes — object or `[ scripts, modules ]` — so plugins never branch on the shape.
+- Entries are declared explicitly in `webpack.config.js`; block entries come from `block.json`.
 - Emits async chunks to `chunks/`.
 - Replaces the `byteever` text domain with the plugin's own domain in vendor PHP, project JS, and `@byteever/*` packages.
 - Extended dependency extraction for cross-plugin shared libraries.
@@ -17,16 +17,15 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 `webpack.config.js`:
 
 ```js
-module.exports = require( '@byteever/scripts/config/webpack.config' );
+module.exports = require( '@byteever/scripts' )( {
+	entry: {
+		admin: './assets/src/admin/index.js',
+		frontend: './assets/src/frontend/index.js',
+	},
+} );
 ```
 
-Extending:
-
-```js
-const configs = require( '@byteever/scripts/config/webpack.config' );
-
-module.exports = configs.map( ( config ) => ( { ...config } ) );
-```
+A blocks-only plugin passes nothing: `require( '@byteever/scripts' )()`.
 
 `package.json`:
 
@@ -39,28 +38,27 @@ module.exports = configs.map( ( config ) => ( { ...config } ) );
 }
 ```
 
-## package.json options
+## Options
 
-Under a `byteever` key:
+- `entry` — entry points; a string path, or a webpack entry descriptor for producers exposing a shared library:
 
-```json
-{
-	"byteever": {
-		"entries": {
-			"gateway": "assets/src/payments/gateway.js",
-			"shared": {
-				"import": "assets/src/shared/index.js",
-				"library": { "name": [ "byteever", "shared" ], "type": "window" }
-			}
+```js
+module.exports = require( '@byteever/scripts' )( {
+	entry: {
+		shared: {
+			import: './assets/src/shared/index.js',
+			library: { name: [ 'byteever', 'shared' ], type: 'window' },
 		},
-		"externals": {
-			"@byteever/shared": [ "byteever", "shared" ]
-		}
-	}
-}
+	},
+} );
 ```
 
-- `entries` — extra entry points; a string path, or a webpack entry descriptor for producers exposing a shared library.
-- `externals` — scoped packages consumed from another plugin's shared library; handles are written into `.asset.php` as `{scope}-{name}`.
+- `externals` — scoped packages consumed from another plugin's shared library; handles are written into `.asset.php` as `{scope}-{name}`:
+
+```js
+module.exports = require( '@byteever/scripts' )( {
+	externals: { '@byteever/shared': [ 'byteever', 'shared' ] },
+} );
+```
 
 The text domain is detected from `textDomain`, falling back to `name`.

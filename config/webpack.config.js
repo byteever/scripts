@@ -10,7 +10,7 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 const BlocksManifestPlugin = require( '../plugins/blocks-manifest' );
 const ScriptExternalsPlugin = require( '../plugins/script-externals' );
 const TextDomainPlugin = require( '../plugins/textdomain-plugin' );
-const { getPackageProp, SOURCE_DIR, OUTPUT_DIR } = require( '../utils' );
+const { SOURCE_DIR, OUTPUT_DIR } = require( '../utils' );
 
 // @wordpress/scripts reads these at require time; CLI flags win over defaults.
 if ( ! process.env.WP_SOURCE_PATH ) {
@@ -27,7 +27,6 @@ const baseConfig = require( '@wordpress/scripts/config/webpack.config' );
 
 const ROOT_PATH = process.cwd();
 const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
-const settings = getPackageProp( 'byteever' ) || {};
 
 /**
  * Apply the ByteEver conventions to one base config.
@@ -35,7 +34,7 @@ const settings = getPackageProp( 'byteever' ) || {};
  * The base export is a single config, or [ scripts, modules ] when script
  * modules are enabled; the module half keeps its own entries and externals.
  */
-const customize = ( config ) => {
+const customize = ( config, overrides ) => {
 	const isModule = !! config.output?.module;
 	const entry = config.entry;
 	const plugins = [ ...( config.plugins || [] ) ];
@@ -110,7 +109,7 @@ const customize = ( config ) => {
 						};
 
 						for ( const [ name, extra ] of Object.entries(
-							settings.entries || {}
+							overrides.entry || {}
 						) ) {
 							entries[ name ] =
 								typeof extra === 'string'
@@ -128,7 +127,7 @@ const customize = ( config ) => {
 					},
 					externals: {
 						...config.externals,
-						...( settings.externals || {} ),
+						...( overrides.externals || {} ),
 					},
 			  } ),
 		output: {
@@ -153,8 +152,16 @@ const customize = ( config ) => {
 	};
 };
 
-const configs = (
-	Array.isArray( baseConfig ) ? baseConfig : [ baseConfig ]
-).map( customize );
+/**
+ * Build the webpack config with the plugin's overrides.
+ *
+ * Returns what webpack consumes — the config object, or the pair when
+ * script modules are enabled — so consumers never branch on the shape.
+ */
+module.exports = ( overrides = {} ) => {
+	const configs = (
+		Array.isArray( baseConfig ) ? baseConfig : [ baseConfig ]
+	).map( ( config ) => customize( config, overrides ) );
 
-module.exports = Array.isArray( baseConfig ) ? configs : configs[ 0 ];
+	return Array.isArray( baseConfig ) ? configs : configs[ 0 ];
+};

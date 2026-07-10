@@ -14,9 +14,12 @@
 	"files": [
 		"config",
 		"plugins",
-		"utils"
+		"utils",
+		"index.js"
 	],
+	"main": "index.js",
 	"exports": {
+		".": "./index.js",
 		"./config/webpack.config": "./config/webpack.config.js",
 		"./plugins/*": "./plugins/*.js",
 		"./utils": "./utils/index.js",
