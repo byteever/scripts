@@ -14,6 +14,18 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 
 ## Setup
 
+`eslint.config.js`:
+
+```js
+module.exports = require( '@byteever/scripts/config/eslint.config' );
+```
+
+`.prettierrc.js`:
+
+```js
+module.exports = require( '@byteever/scripts/config/prettier.config' );
+```
+
 ```json
 {
 	"scripts": {
