@@ -14,7 +14,7 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 
 ## Setup
 
-`.eslintrc.js` (byteever-scripts enables the eslintrc format; `eslint.config.js` extending `config/eslint.config` also works):
+`.eslintrc.js` (converted to the flat format internally — ESLint 9 dropped the eslintrc engine; `eslint.config.js` extending `config/eslint.config` also works):
 
 ```js
 module.exports = {

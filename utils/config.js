@@ -65,7 +65,11 @@ const getScriptArgs = ( script, args ) => {
 			return hasProjectFile( '.eslintrc.js' ) &&
 				! hasProjectFile( 'eslint.config.js' ) &&
 				! hasArgInCLI( '--config' )
-				? [ ...args, '--config', '.eslintrc.js' ]
+				? [
+						...args,
+						'--config',
+						require.resolve( '../config/eslint.config.js' ),
+				  ]
 				: args;
 		default:
 			return args;

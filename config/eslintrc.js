@@ -27,4 +27,12 @@ module.exports = {
 		'no-console': 'off',
 		'@wordpress/dependency-group': 'warn',
 	},
+	overrides: [
+		{
+			files: [ '**/@(test|__tests__)/**/*.js', '**/?(*.)test.js' ],
+			env: {
+				jest: true,
+			},
+		},
+	],
 };
