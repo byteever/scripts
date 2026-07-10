@@ -29,15 +29,6 @@ const ROOT_PATH = process.cwd();
 const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
 const settings = getPackageProp( 'byteever' ) || {};
 
-const STATS = {
-	all: false,
-	errors: true,
-	warnings: true,
-	assets: true,
-	colors: true,
-	timings: true,
-};
-
 /**
  * Apply the ByteEver conventions to one base config.
  *
@@ -72,29 +63,43 @@ const customize = ( config ) => {
 			 */
 			new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ),
 		],
-		stats: STATS,
+		stats: {
+			all: false,
+			errors: true,
+			warnings: true,
+			assets: true,
+			colors: true,
+			timings: true,
+		},
 	};
 
 	if ( config.output?.module ) {
 		return base;
 	}
 
-	const entry = {
-		...( typeof config.entry === 'function'
-			? config.entry()
-			: config.entry ),
-	};
-
-	for ( const [ name, file ] of Object.entries( settings.entries || {} ) ) {
-		entry[ name ] =
-			typeof file === 'string'
-				? path.resolve( ROOT_PATH, file )
-				: { ...file, import: path.resolve( ROOT_PATH, file.import ) };
-	}
-
 	return {
 		...base,
-		entry,
+		entry: {
+			...( typeof config.entry === 'function'
+				? config.entry()
+				: config.entry ),
+			...Object.fromEntries(
+				Object.entries( settings.entries || {} ).map(
+					( [ name, file ] ) => [
+						name,
+						typeof file === 'string'
+							? path.resolve( ROOT_PATH, file )
+							: {
+									...file,
+									import: path.resolve(
+										ROOT_PATH,
+										file.import
+									),
+							  },
+					]
+				)
+			),
+		},
 		externals: {
 			...base.externals,
 			...( settings.externals || {} ),
