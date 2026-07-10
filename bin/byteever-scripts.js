@@ -11,9 +11,13 @@ const { sync: spawn } = require( 'cross-spawn' );
 const {
 	getNodeArgsFromCLI,
 	getPackageProp,
-	hasArgInCLI,
 	hasProjectFile,
 } = require( '@wordpress/scripts/utils' );
+
+/**
+ * Internal dependencies
+ */
+const { hasWebpackConfig } = require( '../utils' );
 
 /**
  * Run a webpack command through the ByteEver config unless the project
@@ -23,12 +27,7 @@ const {
  * @return {string[]} Arguments to forward.
  */
 const useByteeverConfig = ( args ) => {
-	if (
-		hasArgInCLI( '--config' ) ||
-		hasArgInCLI( '-c' ) ||
-		hasProjectFile( 'webpack.config.js' ) ||
-		hasProjectFile( 'webpack.config.babel.js' )
-	) {
+	if ( hasWebpackConfig() ) {
 		return args;
 	}
 
