@@ -19,25 +19,6 @@ const {
  */
 const { hasWebpackConfig } = require( '../utils' );
 
-/**
- * Run a webpack command through the ByteEver config unless the project
- * provides its own.
- *
- * @param {string[]} args Script arguments.
- * @return {string[]} Arguments to forward.
- */
-const useByteeverConfig = ( args ) => {
-	if ( hasWebpackConfig() ) {
-		return args;
-	}
-
-	return [
-		...args,
-		'--config',
-		require.resolve( '../config/webpack.config.js' ),
-	];
-};
-
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
 
 // Default the browserslist to the WordPress config when the project has none.
@@ -62,7 +43,15 @@ const { status } = spawn(
 			switch ( scriptName ) {
 				case 'build':
 				case 'start':
-					return useByteeverConfig( scriptArgs );
+					return hasWebpackConfig()
+						? scriptArgs
+						: [
+								...scriptArgs,
+								'--config',
+								require.resolve(
+									'../config/webpack.config.js'
+								),
+						  ];
 				default:
 					return scriptArgs;
 			}
