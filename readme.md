@@ -17,7 +17,19 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 `eslint.config.js`:
 
 ```js
-module.exports = require( '@byteever/scripts/config/eslint.config' );
+const { defineConfig } = require( 'eslint/config' );
+
+module.exports = defineConfig( [
+	{
+		extends: [ require( '@byteever/scripts/config/eslint.config' ) ],
+		rules: {
+			'@wordpress/i18n-text-domain': [
+				'error',
+				{ allowedTextDomain: 'my-plugin' },
+			],
+		},
+	},
+] );
 ```
 
 `.prettierrc.js`:
