@@ -1,21 +1,30 @@
 /**
  * Text Domain Plugin for Webpack
  *
- * Replaces 'byteever' text domain in PHP vendor files and JS assets.
+ * Replaces the 'byteever' text domain with the consumer plugin's own domain.
  *
- * - PHP: Spawns bin/set-textdomain.php (token_get_all) on vendor files.
- * - JS: Injects @automattic/babel-plugin-replace-textdomain into babel-loader.
+ * - Vendor PHP: rewrites the domain argument of i18n calls in vendor/byteever.
+ * - Project JS: injects @automattic/babel-plugin-replace-textdomain into babel-loader.
+ * - Packages: runs node_modules/@byteever JS through the same transform.
  *
  * Text domain detected from package.json: textDomain → name → folder name.
  */
 
+/**
+ * External dependencies
+ */
 const path = require( 'path' );
 const fs = require( 'fs' );
-const spawn = require( 'cross-spawn' );
+
+/**
+ * Internal dependencies
+ */
 const { getPackageProp } = require( '../utils' );
 
 const PLUGIN_NAME = 'TextDomainPlugin';
 const REPLACE_DOMAIN = 'byteever';
+const I18N_DOMAIN_ARG =
+	/((?<![\w$])(?:__|_e|_x|_ex|_n|_nx|_n_noop|_nx_noop|esc_attr__|esc_attr_e|esc_attr_x|esc_html__|esc_html_e|esc_html_x)\s*\((?:[^()]|\([^()]*\))*?,\s*)(['"])byteever\2(\s*\))/g;
 
 class TextDomainPlugin {
 	apply( compiler ) {
@@ -36,7 +45,7 @@ class TextDomainPlugin {
 	}
 
 	/**
-	 * Replace text domain in vendor PHP files via set-textdomain.php.
+	 * Replace the text domain in vendor PHP i18n calls.
 	 */
 	replacePhpTextDomain( rootPath, textDomain ) {
 		const vendorPath = path.resolve( rootPath, 'vendor/byteever' );
@@ -45,61 +54,37 @@ class TextDomainPlugin {
 			return;
 		}
 
-		const files = [];
-		const collect = ( dir ) => {
-			for ( const entry of fs.readdirSync( dir, { withFileTypes: true } ) ) {
+		let changed = 0;
+		const walk = ( dir ) => {
+			for ( const entry of fs.readdirSync( dir, {
+				withFileTypes: true,
+			} ) ) {
 				const full = path.join( dir, entry.name );
 				if ( entry.isDirectory() ) {
-					collect( full );
+					walk( full );
 				} else if ( entry.name.endsWith( '.php' ) ) {
-					files.push( full );
+					const source = fs.readFileSync( full, 'utf8' );
+					const output = source.replace(
+						I18N_DOMAIN_ARG,
+						`$1$2${ textDomain }$2$3`
+					);
+					if ( output !== source ) {
+						fs.writeFileSync( full, output );
+						changed++;
+					}
 				}
 			}
 		};
-		collect( vendorPath );
+		walk( vendorPath );
 
-		if ( ! files.length ) {
-			return;
-		}
-
-		const argsFile = path.join(
-			require( 'os' ).tmpdir(),
-			`set-textdomain-${ Date.now() }.json`
-		);
-
-		fs.writeFileSync(
-			argsFile,
-			JSON.stringify( {
-				textdomain: textDomain,
-				files,
-				updateDomains: [ REPLACE_DOMAIN ],
-			} )
-		);
-
-		try {
-			const result = spawn.sync(
-				'php',
-				[ path.resolve( __dirname, '../bin/set-textdomain.php' ), argsFile ],
-				{ stdio: [ 'pipe', 'pipe', 'pipe' ] }
-			);
-
-			if ( result.status !== 0 ) {
-				console.error( `${ PLUGIN_NAME }: PHP replacement failed: ${ result.stderr?.toString().trim() || 'Unknown error' }` );
-			} else {
-				try {
-					const { changed } = JSON.parse( result.stdout.toString() );
-					if ( changed > 0 ) {
-						console.log( `${ PLUGIN_NAME }: Updated ${ changed } PHP file(s).` );
-					}
-				} catch {}
-			}
-		} finally {
-			try { fs.unlinkSync( argsFile ); } catch {}
+		if ( changed > 0 ) {
+			// eslint-disable-next-line no-console
+			console.log( `${ PLUGIN_NAME }: Updated ${ changed } PHP file(s).` );
 		}
 	}
 
 	/**
-	 * Add @automattic/babel-plugin-replace-textdomain to babel-loader.
+	 * Rewrite the text domain in JS via babel, including @byteever packages.
 	 */
 	addBabelPlugin( compiler, textDomain ) {
 		const plugin = [
@@ -108,14 +93,40 @@ class TextDomainPlugin {
 		];
 
 		for ( const rule of compiler.options.module.rules ) {
-			for ( const use of [].concat( rule.use || [] ) ) {
-				if ( typeof use === 'object' && /babel-loader/.test( use.loader || '' ) ) {
+			for ( const use of [].concat( rule?.use || [] ) ) {
+				if (
+					typeof use === 'object' &&
+					/babel-loader/.test( use.loader || '' )
+				) {
 					use.options = use.options || {};
-					use.options.plugins = use.options.plugins || [];
-					use.options.plugins.push( plugin );
+					use.options.plugins = [
+						...( use.options.plugins || [] ),
+						plugin,
+					];
 				}
 			}
 		}
+
+		compiler.options.module.rules.push( {
+			test: /\.js$/,
+			include: /[\\/]node_modules[\\/]@byteever[\\/]/,
+			use: {
+				loader: require.resolve( 'babel-loader', {
+					paths: [
+						path.dirname(
+							require.resolve(
+								'@wordpress/scripts/package.json'
+							)
+						),
+					],
+				} ),
+				options: {
+					babelrc: false,
+					configFile: false,
+					plugins: [ plugin ],
+				},
+			},
+		} );
 	}
 }
 
