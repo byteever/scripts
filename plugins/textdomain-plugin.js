@@ -22,6 +22,8 @@ const fs = require( 'fs' );
 const { getPackageProp } = require( '../utils' );
 
 const PLUGIN_NAME = 'TextDomainPlugin';
+
+let phpRewritten = false;
 const REPLACE_DOMAIN = 'byteever';
 const I18N_DOMAIN_ARG =
 	/((?<![\w$])(?:__|_e|_x|_ex|_n|_nx|_n_noop|_nx_noop|esc_attr__|esc_attr_e|esc_attr_x|esc_html__|esc_html_e|esc_html_x)\s*\((?:[^()]|\([^()]*\))*?,\s*)(['"])byteever\2(\s*\))/g;
@@ -39,7 +41,10 @@ class TextDomainPlugin {
 		}
 
 		compiler.hooks.environment.tap( PLUGIN_NAME, () => {
-			this.replacePhpTextDomain( rootPath, textDomain );
+			if ( ! phpRewritten ) {
+				phpRewritten = true;
+				this.replacePhpTextDomain( rootPath, textDomain );
+			}
 			this.addBabelPlugin( compiler, textDomain );
 		} );
 	}

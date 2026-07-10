@@ -30,24 +30,6 @@ const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
 const settings = getPackageProp( 'byteever' ) || {};
 
 /**
- * Entries declared in package.json under byteever.entries.
- *
- * A string path, or a webpack entry descriptor for library producers.
- */
-const getExtraEntries = () => {
-	const entries = {};
-
-	for ( const [ name, entry ] of Object.entries( settings.entries || {} ) ) {
-		entries[ name ] =
-			typeof entry === 'string'
-				? path.resolve( ROOT_PATH, entry )
-				: { ...entry, import: path.resolve( ROOT_PATH, entry.import ) };
-	}
-
-	return entries;
-};
-
-/**
  * Apply the ByteEver conventions to one base config.
  *
  * The base export is a single config, or [ scripts, modules ] when script
@@ -116,10 +98,30 @@ const customize = ( config ) => {
 		...( isModule
 			? {}
 			: {
-					entry: () => ( {
-						...( typeof entry === 'function' ? entry() : entry ),
-						...getExtraEntries(),
-					} ),
+					entry: () => {
+						const entries = {
+							...( typeof entry === 'function'
+								? entry()
+								: entry ),
+						};
+
+						for ( const [ name, extra ] of Object.entries(
+							settings.entries || {}
+						) ) {
+							entries[ name ] =
+								typeof extra === 'string'
+									? path.resolve( ROOT_PATH, extra )
+									: {
+											...extra,
+											import: path.resolve(
+												ROOT_PATH,
+												extra.import
+											),
+									  };
+						}
+
+						return entries;
+					},
 					externals: {
 						...config.externals,
 						...( settings.externals || {} ),
@@ -132,7 +134,7 @@ const customize = ( config ) => {
 				? {}
 				: {
 						chunkFilename: 'chunks/[name].js',
-						enabledLibraryTypes: [ 'window', 'commonjs' ],
+						enabledLibraryTypes: [ 'window' ],
 				  } ),
 		},
 		plugins,
@@ -147,8 +149,7 @@ const customize = ( config ) => {
 	};
 };
 
-const configs = ( Array.isArray( baseConfig ) ? baseConfig : [ baseConfig ] ).map(
-	customize
-);
-
-module.exports = Array.isArray( baseConfig ) ? configs : configs[ 0 ];
+// Always an array: [ scripts ] or [ scripts, modules ]. Consumers map over it.
+module.exports = (
+	Array.isArray( baseConfig ) ? baseConfig : [ baseConfig ]
+).map( customize );
