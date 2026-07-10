@@ -3,7 +3,7 @@
  *
  * Replaces the 'byteever' text domain with the consumer plugin's own domain.
  *
- * - Vendor PHP: runs the wordpress-i18n add-textdomain tool on vendor/byteever.
+ * - Vendor PHP: runs node-wp-i18n's addtextdomain on vendor/byteever.
  * - Project JS: injects @automattic/babel-plugin-replace-textdomain into babel-loader.
  * - Packages: runs node_modules/@byteever JS through the same transform.
  *
@@ -15,8 +15,7 @@
  */
 const path = require( 'path' );
 const fs = require( 'fs' );
-const os = require( 'os' );
-const { sync: spawn } = require( 'cross-spawn' );
+const wpi18n = require( 'node-wp-i18n' );
 
 /**
  * WordPress dependencies
@@ -68,12 +67,19 @@ class TextDomainPlugin {
 		}
 
 		compiler.hooks.environment.tap( PLUGIN_NAME, () => {
-			if ( ! phpRewritten ) {
-				phpRewritten = true;
-				this.replacePhpTextDomain( rootPath, textDomain );
-			}
 			this.addBabelPlugin( compiler, textDomain );
 		} );
+
+		for ( const hook of [ 'beforeRun', 'watchRun' ] ) {
+			compiler.hooks[ hook ].tapPromise( PLUGIN_NAME, () => {
+				if ( phpRewritten ) {
+					return Promise.resolve();
+				}
+				phpRewritten = true;
+
+				return this.replacePhpTextDomain( rootPath, textDomain );
+			} );
+		}
 	}
 
 	/**
@@ -92,13 +98,13 @@ class TextDomainPlugin {
 	}
 
 	/**
-	 * Replace the text domain in vendor PHP files via the wordpress-i18n tool.
+	 * Replace the text domain in vendor PHP files via node-wp-i18n.
 	 */
 	replacePhpTextDomain( rootPath, textDomain ) {
 		const vendorPath = path.resolve( rootPath, 'vendor/byteever' );
 
 		if ( ! fs.existsSync( vendorPath ) ) {
-			return;
+			return Promise.resolve();
 		}
 
 		const files = [];
@@ -117,56 +123,21 @@ class TextDomainPlugin {
 		walk( vendorPath );
 
 		if ( ! files.length ) {
-			return;
+			return Promise.resolve();
 		}
 
-		const argsFile = path.join(
-			os.tmpdir(),
-			`b8-textdomain-${ process.pid }.json`
-		);
-
-		fs.writeFileSync(
-			argsFile,
-			JSON.stringify( {
+		return wpi18n
+			.addtextdomain( files, {
+				cwd: rootPath,
 				textdomain: textDomain,
-				files,
-				'update-domains':
-					true === this.options.updateDomains
-						? [ 'all' ]
-						: this.options.updateDomains,
-				'dry-run': false,
+				updateDomains: this.options.updateDomains,
 			} )
-		);
-
-		try {
-			const result = spawn(
-				'php',
-				[
-					path.resolve(
-						__dirname,
-						'../bin/php/node-add-textdomain.php'
-					),
-					argsFile,
-				],
-				{ stdio: 'pipe' }
-			);
-
-			if ( result.error || 0 !== result.status ) {
+			.catch( ( error ) => {
 				// eslint-disable-next-line no-console
 				console.warn(
-					`${ PLUGIN_NAME }: skipped vendor PHP rewrite (${
-						result.error?.code === 'ENOENT'
-							? 'php not found'
-							: result.stderr?.toString().trim() ||
-							  'unknown error'
-					}).`
+					`${ PLUGIN_NAME }: skipped vendor PHP rewrite (${ error.message }).`
 				);
-			}
-		} finally {
-			try {
-				fs.unlinkSync( argsFile );
-			} catch {}
-		}
+			} );
 	}
 
 	/**

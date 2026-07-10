@@ -20,9 +20,21 @@
  */
 
 /**
+ * External dependencies
+ */
+const path = require( 'path' );
+
+/**
  * WordPress dependencies
  */
-const DependencyExtractionWebpackPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
+const DependencyExtractionWebpackPlugin = require( require.resolve(
+	'@wordpress/dependency-extraction-webpack-plugin',
+	{
+		paths: [
+			path.dirname( require.resolve( '@wordpress/scripts/package.json' ) ),
+		],
+	}
+) );
 
 /**
  * Script Externals Plugin class.

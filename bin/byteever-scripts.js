@@ -9,25 +9,25 @@ const { sync: spawn } = require( 'cross-spawn' );
  * WordPress dependencies
  */
 const {
-	getArgsFromCLI,
+	getNodeArgsFromCLI,
 	getPackageProp,
 	hasArgInCLI,
 	hasProjectFile,
 } = require( '@wordpress/scripts/utils' );
 
-const args = getArgsFromCLI();
+const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
 
 // Build commands run through the ByteEver webpack config unless the project provides one.
 const WEBPACK_SCRIPTS = [ 'build', 'start' ];
 
 if (
-	WEBPACK_SCRIPTS.includes( args[ 0 ] ) &&
+	WEBPACK_SCRIPTS.includes( scriptName ) &&
 	! hasArgInCLI( '--config' ) &&
 	! hasArgInCLI( '-c' ) &&
 	! hasProjectFile( 'webpack.config.js' ) &&
 	! hasProjectFile( 'webpack.config.babel.js' )
 ) {
-	args.push( '--config', require.resolve( '../config/webpack.config.js' ) );
+	scriptArgs.push( '--config', require.resolve( '../config/webpack.config.js' ) );
 }
 
 // Default the browserslist to the WordPress config when the project has none.
@@ -43,7 +43,12 @@ if (
 
 const { status } = spawn(
 	'node',
-	[ require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ), ...args ],
+	[
+		...nodeArgs,
+		require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ),
+		scriptName,
+		...scriptArgs,
+	],
 	{
 		stdio: 'inherit',
 	}

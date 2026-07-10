@@ -83,4 +83,4 @@ With `--experimental-modules` the export is a `[ scripts, modules ]` array, matc
 
 ## Text domain
 
-The target domain is detected from `textDomain`, falling back to `name`, normalized to a slug. The `updateDomains` list defaults to `[ "byteever" ]`; vendor PHP is rewritten in place.
+The target domain is detected from `textDomain`, falling back to `name`, normalized to a slug; override it with `byteever.textdomain`. The domains to replace default to `[ "byteever" ]`; override with `byteever.updateDomains` (or `true` for all). Vendor PHP is rewritten in place via node-wp-i18n.

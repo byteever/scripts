@@ -75,6 +75,10 @@ const customize = ( config ) => {
 			 *
 			 * @see ../plugins/textdomain-plugin.js
 			 */
+			new TextDomainPlugin( {
+				textdomain: settings.textdomain || '',
+				updateDomains: settings.updateDomains || [ 'byteever' ],
+			} ),
 			new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ),
 		],
 		stats: {
