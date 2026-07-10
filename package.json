@@ -33,7 +33,7 @@
 		"./utils": "./utils/index.js",
 		"./package.json": "./package.json",
 		"./config/prettier.config": "./config/prettier.config.js",
-		"./config/eslintrc": "./config/eslintrc.js"
+		"./config/eslint.config": "./config/eslint.config.js"
 	},
 	"bin": {
 		"byteever-scripts": "./bin/byteever-scripts.js"
