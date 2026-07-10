@@ -64,7 +64,7 @@ const customize = ( config ) => {
 	 *
 	 * @see ../plugins/textdomain-plugin.js
 	 */
-	plugins.push( new TextDomainPlugin() );
+	plugins.push( new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ) );
 
 	if ( isModule ) {
 		return {

@@ -24,20 +24,42 @@ const { sync: spawn } = require( 'cross-spawn' );
 const { getPackageProp } = require( '@wordpress/scripts/utils' );
 
 const PLUGIN_NAME = 'TextDomainPlugin';
-const REPLACE_DOMAIN = 'byteever';
 
 let phpRewritten = false;
 const injectedRules = new WeakSet();
 
 class TextDomainPlugin {
+	/**
+	 * Create a TextDomainPlugin instance.
+	 *
+	 * @param {Object}        options               Plugin options.
+	 * @param {string}        options.textdomain    Project text domain. Detected from
+	 *                                              package.json (textDomain → name → folder) when empty.
+	 * @param {Array|boolean} options.updateDomains List of text domains to replace, or true for all.
+	 */
+	constructor( options = {} ) {
+		this.options = {
+			textdomain: '',
+			updateDomains: [],
+			...options,
+		};
+	}
+
 	apply( compiler ) {
 		const rootPath = compiler.context;
+		const { updateDomains } = this.options;
 		const textDomain =
+			this.options.textdomain ||
 			getPackageProp( 'textDomain' ) ||
 			getPackageProp( 'name' ) ||
 			path.basename( rootPath );
 
-		if ( ! textDomain || textDomain === REPLACE_DOMAIN ) {
+		if (
+			! textDomain ||
+			( Array.isArray( updateDomains ) &&
+				( ! updateDomains.length ||
+					updateDomains.includes( textDomain ) ) )
+		) {
 			return;
 		}
 
@@ -48,6 +70,21 @@ class TextDomainPlugin {
 			}
 			this.addBabelPlugin( compiler, textDomain );
 		} );
+	}
+
+	/**
+	 * Get the babel replacement map for the domains to update.
+	 */
+	getBabelTextdomain( textDomain ) {
+		const { updateDomains } = this.options;
+
+		if ( true === updateDomains ) {
+			return textDomain;
+		}
+
+		return Object.fromEntries(
+			updateDomains.map( ( domain ) => [ domain, textDomain ] )
+		);
 	}
 
 	/**
@@ -89,7 +126,10 @@ class TextDomainPlugin {
 			JSON.stringify( {
 				textdomain: textDomain,
 				files,
-				'update-domains': [ REPLACE_DOMAIN ],
+				'update-domains':
+					true === this.options.updateDomains
+						? [ 'all' ]
+						: this.options.updateDomains,
 				'dry-run': false,
 			} )
 		);
@@ -131,7 +171,7 @@ class TextDomainPlugin {
 	addBabelPlugin( compiler, textDomain ) {
 		const plugin = [
 			require.resolve( '@automattic/babel-plugin-replace-textdomain' ),
-			{ textdomain: { [ REPLACE_DOMAIN ]: textDomain } },
+			{ textdomain: this.getBabelTextdomain( textDomain ) },
 		];
 
 		// The script and module configs share rule objects; inject once.
