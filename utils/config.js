@@ -61,6 +61,12 @@ const getScriptArgs = ( script, args ) => {
 						'--config',
 						require.resolve( '../config/webpack.config.js' ),
 				  ];
+		case 'lint-js':
+			return hasProjectFile( '.eslintrc.js' ) &&
+				! hasProjectFile( 'eslint.config.js' ) &&
+				! hasArgInCLI( '--config' )
+				? [ ...args, '--config', '.eslintrc.js' ]
+				: args;
 		default:
 			return args;
 	}
