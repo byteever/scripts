@@ -74,11 +74,19 @@ const customize = ( config ) => {
 			 * @see ../plugins/textdomain-plugin.js
 			 */
 			new TextDomainPlugin( {
-				textdomain: settings.textdomain || getPackageProp( 'name' ) || '',
-				updateDomains: settings.updateDomains || [ 'byteever' ],
-				src: settings.src || [ 'vendor/byteever/**/*.php' ],
+				textdomain: getPackageOption(
+					[ 'byteever.i18n.textdomain', 'textDomain', 'name' ],
+					''
+				),
+				updateDomains: getPackageOption(
+					'byteever.i18n.updateDomains',
+					[ 'byteever' ]
+				),
+				include: getPackageOption( 'byteever.i18n.include', [
+					'vendor/byteever',
+				] ),
+				exclude: getPackageOption( 'byteever.i18n.exclude', [] ),
 			} ),
-			new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ),
 		],
 		stats: {
 			all: false,
