@@ -17,32 +17,9 @@ const {
 /**
  * Internal dependencies
  */
-const { hasWebpackConfig } = require( '../utils' );
+const { getScriptArgs } = require( '../utils' );
 
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
-
-/**
- * Get the arguments to forward for the given command.
- *
- * @param {string}   script Script name.
- * @param {string[]} args   Script arguments.
- * @return {string[]} Arguments to forward.
- */
-const getScriptArgs = ( script, args ) => {
-	switch ( script ) {
-		case 'build':
-		case 'start':
-			return hasWebpackConfig()
-				? args
-				: [
-						...args,
-						'--config',
-						require.resolve( '../config/webpack.config.js' ),
-				  ];
-		default:
-			return args;
-	}
-};
 
 // Default the browserslist to the WordPress config when the project has none.
 if (

@@ -63,6 +63,18 @@ Under the `byteever` key in `package.json`:
 }
 ```
 
+- `textdomain` — the target text domain; detected from `textDomain`, falling back to `name`, when not set.
+- `updateDomains` — text domains to replace, or `true` for all; defaults to `[ "byteever" ]`:
+
+```json
+{
+	"byteever": {
+		"textdomain": "my-plugin",
+		"updateDomains": [ "byteever", "old-domain" ]
+	}
+}
+```
+
 ## Custom webpack config
 
 Create a `webpack.config.js` and `byteever-scripts` defers to it. Extend the ByteEver config exactly like the `@wordpress/scripts` one:

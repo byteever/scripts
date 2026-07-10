@@ -19,7 +19,31 @@ const hasWebpackConfig = () =>
 	hasProjectFile( 'webpack.config.js' ) ||
 	hasProjectFile( 'webpack.config.babel.js' );
 
+/**
+ * Get the arguments to forward for the given command.
+ *
+ * @param {string}   script Script name.
+ * @param {string[]} args   Script arguments.
+ * @return {string[]} Arguments to forward.
+ */
+const getScriptArgs = ( script, args ) => {
+	switch ( script ) {
+		case 'build':
+		case 'start':
+			return hasWebpackConfig()
+				? args
+				: [
+						...args,
+						'--config',
+						require.resolve( '../config/webpack.config.js' ),
+				  ];
+		default:
+			return args;
+	}
+};
+
 module.exports = {
+	getScriptArgs,
 	hasWebpackConfig,
 	SOURCE_DIR,
 	OUTPUT_DIR,
