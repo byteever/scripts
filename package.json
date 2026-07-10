@@ -25,23 +25,23 @@
 		"bin",
 		"config",
 		"plugins",
+		"tools",
 		"utils"
 	],
 	"exports": {
 		"./config/webpack.config": "./config/webpack.config.js",
 		"./plugins/*": "./plugins/*.js",
+		"./tools/eslint": "./tools/eslint/index.js",
 		"./utils": "./utils/index.js",
 		"./package.json": "./package.json",
 		"./config/prettier.config": "./config/prettier.config.js",
-		"./config/eslint.config": "./config/eslint.config.js",
-		"./config/eslintrc": "./config/eslintrc.js"
+		"./config/eslint.config": "./config/eslint.config.js"
 	},
 	"bin": {
 		"byteever-scripts": "./bin/byteever-scripts.js"
 	},
 	"dependencies": {
 		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",
-		"@eslint/eslintrc": "^3.3.5",
 		"@wordpress/prettier-config": "^4.50.0",
 		"cross-spawn": "^7.0.6",
 		"node-wp-i18n": "^1.2.8",

@@ -14,19 +14,20 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 
 ## Setup
 
-`.eslintrc.js` (converted to the flat format internally — ESLint 9 dropped the eslintrc engine; `eslint.config.js` extending `config/eslint.config` also works):
+`eslint.config.js` (the shared config wires up the ByteEver ESLint plugin from `tools/eslint`, extending `@wordpress/eslint-plugin`; custom `byteever/*` rules get a home there):
 
 ```js
-module.exports = {
-	root: true,
-	extends: [ require.resolve( '@byteever/scripts/config/eslintrc' ) ],
-	rules: {
-		'@wordpress/i18n-text-domain': [
-			'error',
-			{ allowedTextDomain: 'my-plugin' },
-		],
+module.exports = [
+	...require( '@byteever/scripts/config/eslint.config' ),
+	{
+		rules: {
+			'@wordpress/i18n-text-domain': [
+				'error',
+				{ allowedTextDomain: 'my-plugin' },
+			],
+		},
 	},
-};
+];
 ```
 
 `.prettierrc.js`:
