@@ -1,7 +1,34 @@
 /**
  * WordPress dependencies
  */
-const { hasArgInCLI, hasProjectFile } = require( '@wordpress/scripts/utils' );
+const {
+	getPackageProp,
+	hasArgInCLI,
+	hasProjectFile,
+} = require( '@wordpress/scripts/utils' );
+
+/**
+ * Get the first defined package.json property from a list of property paths.
+ *
+ * @param {string|string[]} paths    Property paths in priority order.
+ * @param {*}               fallback Value when no property is set.
+ * @return {*} The first defined property value.
+ */
+const getPackageOption = ( paths, fallback ) => {
+	for ( const propPath of [].concat( paths ) ) {
+		const [ head, ...rest ] = propPath.split( '.' );
+		const value = rest.reduce(
+			( object, key ) => object?.[ key ],
+			getPackageProp( head )
+		);
+
+		if ( undefined !== value ) {
+			return value;
+		}
+	}
+
+	return fallback;
+};
 
 /**
  * Whether the project provides its own webpack config.
@@ -38,6 +65,7 @@ const getScriptArgs = ( script, args ) => {
 };
 
 module.exports = {
+	getPackageOption,
 	getScriptArgs,
 	hasWebpackConfig,
 };

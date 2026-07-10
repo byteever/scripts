@@ -9,7 +9,7 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
  */
 const ScriptExternalsPlugin = require( '../plugins/script-externals' );
 const TextDomainPlugin = require( '../plugins/textdomain-plugin' );
-const { SOURCE_DIR, OUTPUT_DIR } = require( '../utils' );
+const { getPackageOption, SOURCE_DIR, OUTPUT_DIR } = require( '../utils' );
 
 // @wordpress/scripts reads these at require time; CLI flags win over defaults.
 if ( ! process.env.WP_SOURCE_PATH ) {
@@ -23,19 +23,16 @@ if ( ! process.env.WP_COPY_PHP_FILES_TO_DIST ) {
  * WordPress dependencies — loaded after the env defaults above.
  */
 const baseConfig = require( '@wordpress/scripts/config/webpack.config' );
-const { getPackageProp } = require( '@wordpress/scripts/utils' );
 
 const ROOT_PATH = process.cwd();
 const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
-const settings = getPackageProp( 'byteever' ) || {};
-const i18n = settings.i18n || {};
 
 /**
  * Entries declared in package.json under byteever.entries — a string path,
  * or a webpack entry descriptor for producers exposing a shared library.
  */
 const entries = Object.fromEntries(
-	Object.entries( settings.entries || {} ).map( ( [ name, file ] ) => [
+	Object.entries( getPackageOption( 'byteever.entries', {} ) ).map( ( [ name, file ] ) => [
 		name,
 		typeof file === 'string'
 			? path.resolve( ROOT_PATH, file )
@@ -107,7 +104,7 @@ const customize = ( config ) => {
 		},
 		externals: {
 			...base.externals,
-			...( settings.externals || {} ),
+			...getPackageOption( 'byteever.externals', {} ),
 		},
 		output: {
 			...base.output,

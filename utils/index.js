@@ -1,10 +1,15 @@
 /**
  * Internal dependencies
  */
-const { getScriptArgs, hasWebpackConfig } = require( './config' );
+const {
+	getPackageOption,
+	getScriptArgs,
+	hasWebpackConfig,
+} = require( './config' );
 const { SOURCE_DIR, OUTPUT_DIR } = require( './constants' );
 
 module.exports = {
+	getPackageOption,
 	getScriptArgs,
 	hasWebpackConfig,
 	SOURCE_DIR,
