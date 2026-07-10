@@ -82,7 +82,7 @@ const customize = ( config ) => {
 					getPackageProp( 'name' ) ||
 					'',
 				updateDomains: settings.updateDomains || [ 'byteever' ],
-				vendorPath: settings.vendorPath || 'vendor/byteever',
+				src: settings.src || [ 'vendor/byteever/**/*.php' ],
 			} ),
 			new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ),
 		],

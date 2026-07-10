@@ -3,7 +3,7 @@
  *
  * Replaces the 'byteever' text domain with the consumer plugin's own domain.
  *
- * - Vendor PHP: runs node-wp-i18n's addtextdomain on vendor/byteever.
+ * - Vendor PHP: runs node-wp-i18n's addtextdomain on the src globs.
  * - Project JS: injects @automattic/babel-plugin-replace-textdomain into babel-loader.
  * - Packages: runs node_modules/@byteever JS through the same transform.
  *
@@ -14,8 +14,10 @@
  * External dependencies
  */
 const path = require( 'path' );
-const fs = require( 'fs' );
 const wpi18n = require( 'node-wp-i18n' );
+const glob = require( require.resolve( 'glob', {
+	paths: [ path.dirname( require.resolve( 'node-wp-i18n/package.json' ) ) ],
+} ) );
 
 /**
  * WordPress dependencies
@@ -35,13 +37,13 @@ class TextDomainPlugin {
 	 * @param {string}        options.textdomain    Project text domain. Detected from
 	 *                                              package.json (textDomain → name → folder) when empty.
 	 * @param {Array|boolean} options.updateDomains List of text domains to replace, or true for all.
-	 * @param {string}        options.vendorPath    Vendor directory holding the PHP files to rewrite.
+	 * @param {string[]}      options.src           Glob patterns of the PHP files to rewrite.
 	 */
 	constructor( options = {} ) {
 		this.options = {
 			textdomain: '',
 			updateDomains: [],
-			vendorPath: 'vendor/byteever',
+			src: [ 'vendor/byteever/**/*.php' ],
 			...options,
 		};
 	}
@@ -100,29 +102,12 @@ class TextDomainPlugin {
 	}
 
 	/**
-	 * Replace the text domain in vendor PHP files via node-wp-i18n.
+	 * Replace the text domain in PHP files via node-wp-i18n.
 	 */
 	replacePhpTextDomain( rootPath, textDomain ) {
-		const vendorPath = path.resolve( rootPath, this.options.vendorPath );
-
-		if ( ! fs.existsSync( vendorPath ) ) {
-			return Promise.resolve();
-		}
-
-		const files = [];
-		const walk = ( dir ) => {
-			for ( const entry of fs.readdirSync( dir, {
-				withFileTypes: true,
-			} ) ) {
-				const full = path.join( dir, entry.name );
-				if ( entry.isDirectory() ) {
-					walk( full );
-				} else if ( entry.name.endsWith( '.php' ) ) {
-					files.push( full );
-				}
-			}
-		};
-		walk( vendorPath );
+		const files = this.options.src.flatMap( ( pattern ) =>
+			glob.sync( pattern, { cwd: rootPath, absolute: true } )
+		);
 
 		if ( ! files.length ) {
 			return Promise.resolve();
