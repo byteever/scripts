@@ -9,7 +9,7 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 - Copies block `block.json` and PHP files (`render.php`) into the build; emits async chunks to `chunks/`.
 - Entries and externals are declared in `package.json` under the `byteever` key.
 - Defaults the browserslist to `@wordpress/browserslist-config` when the project declares none.
-- Replaces the `byteever` text domain with the plugin's own domain in vendor PHP (via node-wp-i18n), project JS, and `@byteever/*` packages.
+- Replaces the `byteever` text domain with the plugin's own domain in vendor PHP (via node-wp-i18n), project JS, and `@byteever/*` packages; PHP i18n calls missing a domain get one added.
 - Extended dependency extraction for cross-plugin shared libraries.
 
 ## Setup
