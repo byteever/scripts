@@ -40,38 +40,14 @@ const STATS = {
 };
 
 /**
- * Resolved entry points for the scripts config: the base entries plus the
- * entries declared in package.json under byteever.entries.
+ * Apply the ByteEver conventions to one base config.
+ *
+ * The base export is a single config, or [ scripts, modules ] when script
+ * modules are enabled; the module half keeps its own entries and externals.
  */
-const getEntry = ( config ) => {
-	const entry =
-		typeof config.entry === 'function' ? config.entry() : config.entry;
-	const extra = {};
-
-	for ( const [ name, file ] of Object.entries( settings.entries || {} ) ) {
-		extra[ name ] =
-			typeof file === 'string'
-				? path.resolve( ROOT_PATH, file )
-				: { ...file, import: path.resolve( ROOT_PATH, file.import ) };
-	}
-
-	return { ...entry, ...extra };
-};
-
-/**
- * Base plugins with the ByteEver replacements and additions applied.
- */
-const getPlugins = ( config, isModule ) => {
+const customize = ( config ) => {
+	const isModule = !! config.output?.module;
 	const plugins = [ ...( config.plugins || [] ) ];
-
-	const replace = ( name, replacement ) => {
-		const index = plugins.findIndex(
-			( plugin ) => name === plugin?.constructor?.name
-		);
-		if ( -1 !== index ) {
-			plugins.splice( index, 1, replacement );
-		}
-	};
 
 	/**
 	 * Extract CSS chunks next to the script chunks.
@@ -83,38 +59,6 @@ const getPlugins = ( config, isModule ) => {
 		miniCss.options.chunkFilename = 'chunks/[name].css';
 	}
 
-	if ( ! isModule ) {
-		/**
-		 * Generate the manifest inside the blocks directory.
-		 *
-		 * @see ../plugins/blocks-manifest.js
-		 */
-		replace( 'BlocksManifestPlugin', new BlocksManifestPlugin() );
-
-		/**
-		 * Extended dependency extraction that handles custom script externals.
-		 * Reads externals from webpack config and generates correct handles in .asset.php.
-		 *
-		 * @see ../plugins/script-externals.js
-		 */
-		replace(
-			'DependencyExtractionWebpackPlugin',
-			new ScriptExternalsPlugin()
-		);
-
-		/**
-		 * Remove empty scripts emitted for CSS-only entry points.
-		 *
-		 * @see https://www.npmjs.com/package/webpack-remove-empty-scripts
-		 */
-		plugins.push(
-			new RemoveEmptyScriptsPlugin( {
-				stage: RemoveEmptyScriptsPlugin.STAGE_AFTER_PROCESS_PLUGINS,
-				remove: /\.js$/,
-			} )
-		);
-	}
-
 	/**
 	 * Replace 'byteever' text domains in PHP vendor files and JS assets.
 	 * Auto-detects text domain from package.json (textDomain → name → folder).
@@ -123,30 +67,69 @@ const getPlugins = ( config, isModule ) => {
 	 */
 	plugins.push( new TextDomainPlugin() );
 
-	return plugins;
-};
-
-/**
- * Apply the ByteEver conventions to one base config.
- *
- * The base export is a single config, or [ scripts, modules ] when script
- * modules are enabled; the module half keeps its own entries and externals.
- */
-const customize = ( config ) => {
-	const isModule = !! config.output?.module;
-
 	if ( isModule ) {
 		return {
 			...config,
 			output: { ...config.output, path: OUTPUT_PATH },
-			plugins: getPlugins( config, isModule ),
+			plugins,
 			stats: STATS,
 		};
 	}
 
+	const manifest = plugins.findIndex(
+		( plugin ) => 'BlocksManifestPlugin' === plugin?.constructor?.name
+	);
+	if ( -1 !== manifest ) {
+		/**
+		 * Generate the manifest inside the blocks directory.
+		 *
+		 * @see ../plugins/blocks-manifest.js
+		 */
+		plugins.splice( manifest, 1, new BlocksManifestPlugin() );
+	}
+
+	const dewp = plugins.findIndex(
+		( plugin ) =>
+			'DependencyExtractionWebpackPlugin' === plugin?.constructor?.name
+	);
+	if ( -1 !== dewp ) {
+		/**
+		 * Extended dependency extraction that handles custom script externals.
+		 * Reads externals from webpack config and generates correct handles in .asset.php.
+		 *
+		 * @see ../plugins/script-externals.js
+		 */
+		plugins.splice( dewp, 1, new ScriptExternalsPlugin() );
+	}
+
+	/**
+	 * Remove empty scripts emitted for CSS-only entry points.
+	 *
+	 * @see https://www.npmjs.com/package/webpack-remove-empty-scripts
+	 */
+	plugins.push(
+		new RemoveEmptyScriptsPlugin( {
+			stage: RemoveEmptyScriptsPlugin.STAGE_AFTER_PROCESS_PLUGINS,
+			remove: /\.js$/,
+		} )
+	);
+
+	const entry = {
+		...( typeof config.entry === 'function'
+			? config.entry()
+			: config.entry ),
+	};
+
+	for ( const [ name, file ] of Object.entries( settings.entries || {} ) ) {
+		entry[ name ] =
+			typeof file === 'string'
+				? path.resolve( ROOT_PATH, file )
+				: { ...file, import: path.resolve( ROOT_PATH, file.import ) };
+	}
+
 	return {
 		...config,
-		entry: getEntry( config ),
+		entry,
 		externals: { ...config.externals, ...( settings.externals || {} ) },
 		output: {
 			...config.output,
@@ -154,7 +137,7 @@ const customize = ( config ) => {
 			chunkFilename: 'chunks/[name].js',
 			enabledLibraryTypes: [ 'window' ],
 		},
-		plugins: getPlugins( config, isModule ),
+		plugins,
 		stats: STATS,
 	};
 };
