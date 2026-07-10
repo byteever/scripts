@@ -30,6 +30,19 @@ const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
 const settings = getPackageProp( 'byteever' ) || {};
 
 /**
+ * Entries declared in package.json under byteever.entries — a string path,
+ * or a webpack entry descriptor for producers exposing a shared library.
+ */
+const entries = Object.fromEntries(
+	Object.entries( settings.entries || {} ).map( ( [ name, file ] ) => [
+		name,
+		typeof file === 'string'
+			? path.resolve( ROOT_PATH, file )
+			: { ...file, import: path.resolve( ROOT_PATH, file.import ) },
+	] )
+);
+
+/**
  * Apply the ByteEver conventions to one base config.
  *
  * The base export is a single config, or [ scripts, modules ] when script
@@ -83,22 +96,7 @@ const customize = ( config ) => {
 			...( typeof config.entry === 'function'
 				? config.entry()
 				: config.entry ),
-			...Object.fromEntries(
-				Object.entries( settings.entries || {} ).map(
-					( [ name, file ] ) => [
-						name,
-						typeof file === 'string'
-							? path.resolve( ROOT_PATH, file )
-							: {
-									...file,
-									import: path.resolve(
-										ROOT_PATH,
-										file.import
-									),
-							  },
-					]
-				)
-			),
+			...entries,
 		},
 		externals: {
 			...base.externals,
