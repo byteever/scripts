@@ -45,7 +45,6 @@ const STATS = {
  * modules are enabled; the module half keeps its own entries and externals.
  */
 const customize = ( config ) => {
-	const isModule = !! config.output?.module;
 	const plugins = [ ...( config.plugins || [] ) ];
 
 	/**
@@ -59,20 +58,22 @@ const customize = ( config ) => {
 	}
 
 	/**
-	 * Replace 'byteever' text domains in PHP vendor files and JS assets.
+	 * Replace text domains in PHP vendor files and JS assets.
 	 * Auto-detects text domain from package.json (textDomain → name → folder).
 	 *
 	 * @see ../plugins/textdomain-plugin.js
 	 */
 	plugins.push( new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ) );
 
-	if ( isModule ) {
-		return {
-			...config,
-			output: { ...config.output, path: OUTPUT_PATH },
-			plugins,
-			stats: STATS,
-		};
+	const base = {
+		...config,
+		output: { ...config.output, path: OUTPUT_PATH },
+		plugins,
+		stats: STATS,
+	};
+
+	if ( config.output?.module ) {
+		return base;
 	}
 
 	const dewp = plugins.findIndex(
@@ -115,17 +116,14 @@ const customize = ( config ) => {
 	}
 
 	return {
-		...config,
+		...base,
 		entry,
-		externals: { ...config.externals, ...( settings.externals || {} ) },
+		externals: { ...base.externals, ...( settings.externals || {} ) },
 		output: {
-			...config.output,
-			path: OUTPUT_PATH,
+			...base.output,
 			chunkFilename: 'chunks/[name].js',
 			enabledLibraryTypes: [ 'window' ],
 		},
-		plugins,
-		stats: STATS,
 	};
 };
 
