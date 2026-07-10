@@ -2,7 +2,6 @@
  * External dependencies
  */
 const path = require( 'path' );
-const WebpackBar = require( 'webpackbar' );
 const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 
 /**
@@ -83,15 +82,6 @@ const customize = ( config ) => {
 	 * @see ../plugins/textdomain-plugin.js
 	 */
 	plugins.push( new TextDomainPlugin() );
-
-	/**
-	 * Show progressbar for cleaner build output.
-	 *
-	 * @see https://github.com/unjs/webpackbar
-	 */
-	plugins.push(
-		new WebpackBar( { name: isModule ? 'modules' : 'scripts' } )
-	);
 
 	return {
 		...config,
