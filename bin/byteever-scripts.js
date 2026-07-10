@@ -37,8 +37,9 @@ const { status } = spawn(
 	[
 		...nodeArgs,
 		require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ),
-		scriptName,
-		...getScriptArgs( scriptName, scriptArgs ),
+		...( scriptName
+			? [ scriptName, ...getScriptArgs( scriptName, scriptArgs ) ]
+			: [] ),
 	],
 	{
 		stdio: 'inherit',

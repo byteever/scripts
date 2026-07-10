@@ -3,7 +3,7 @@
  *
  * Replaces the 'byteever' text domain with the consumer plugin's own domain.
  *
- * - Vendor PHP: runs node-wp-i18n's addtextdomain on the src globs.
+ * - Vendor PHP: runs node-wp-i18n's addtextdomain on the included paths.
  * - Project JS: injects @automattic/babel-plugin-replace-textdomain into babel-loader.
  * - Packages: runs node_modules/@byteever JS through the same transform.
  *
@@ -14,6 +14,7 @@
  * External dependencies
  */
 const path = require( 'path' );
+const fs = require( 'fs' );
 const wpi18n = require( 'node-wp-i18n' );
 const glob = require( require.resolve( 'glob', {
 	paths: [ path.dirname( require.resolve( 'node-wp-i18n/package.json' ) ) ],
@@ -37,13 +38,15 @@ class TextDomainPlugin {
 	 * @param {string}        options.textdomain    Project text domain. Detected from
 	 *                                              package.json (textDomain → name → folder) when empty.
 	 * @param {Array|boolean} options.updateDomains List of text domains to replace, or true for all.
-	 * @param {string[]}      options.src           Glob patterns of the PHP files to rewrite.
+	 * @param {string[]}      options.include       Directories or glob patterns holding the PHP files to rewrite.
+	 * @param {string[]}      options.exclude       Directories or glob patterns to skip.
 	 */
 	constructor( options = {} ) {
 		this.options = {
 			textdomain: '',
 			updateDomains: [],
-			src: [ 'vendor/byteever/**/*.php' ],
+			include: [ 'vendor/byteever' ],
+			exclude: [],
 			...options,
 		};
 	}
@@ -102,12 +105,44 @@ class TextDomainPlugin {
 	}
 
 	/**
+	 * Resolve directories or glob patterns to the PHP files they contain.
+	 */
+	resolvePhpFiles( patterns, cwd ) {
+		const files = new Set();
+
+		for ( const pattern of patterns ) {
+			for ( const match of glob.sync( pattern, {
+				cwd,
+				absolute: true,
+			} ) ) {
+				try {
+					if ( fs.statSync( match ).isDirectory() ) {
+						for ( const file of glob.sync( '**/*.php', {
+							cwd: match,
+							absolute: true,
+						} ) ) {
+							files.add( file );
+						}
+					} else if ( match.endsWith( '.php' ) ) {
+						files.add( match );
+					}
+				} catch {
+					// Skip unreadable paths.
+				}
+			}
+		}
+
+		return files;
+	}
+
+	/**
 	 * Replace the text domain in PHP files via node-wp-i18n.
 	 */
 	replacePhpTextDomain( rootPath, textDomain ) {
-		const files = this.options.src.flatMap( ( pattern ) =>
-			glob.sync( pattern, { cwd: rootPath, absolute: true } )
-		);
+		const excluded = this.resolvePhpFiles( this.options.exclude, rootPath );
+		const files = [
+			...this.resolvePhpFiles( this.options.include, rootPath ),
+		].filter( ( file ) => ! excluded.has( file ) );
 
 		if ( ! files.length ) {
 			return Promise.resolve();

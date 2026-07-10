@@ -63,15 +63,17 @@ Under the `byteever` key in `package.json`:
 }
 ```
 
-- `textdomain` — the target text domain; detected from `textDomain`, falling back to `name`, when not set.
-- `updateDomains` — text domains to replace, or `true` for all; defaults to `[ "byteever" ]`.
-- `src` — glob patterns of the PHP files to rewrite; defaults to `[ "vendor/byteever/**/*.php" ]`:
+- `i18n` — text domain handling. `textdomain` is detected from `textDomain`, falling back to `name`, when not set; `updateDomains` lists the domains to replace (`true` for all) and defaults to `[ "byteever" ]`; `include`/`exclude` take directories or glob patterns — PHP files are selected internally:
 
 ```json
 {
 	"byteever": {
-		"textdomain": "my-plugin",
-		"updateDomains": [ "byteever", "old-domain" ]
+		"i18n": {
+			"textdomain": "my-plugin",
+			"updateDomains": [ "byteever", "old-domain" ],
+			"include": [ "vendor/byteever" ],
+			"exclude": [ "vendor/byteever/tests" ]
+		}
 	}
 }
 ```

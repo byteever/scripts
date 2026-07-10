@@ -28,6 +28,7 @@ const { getPackageProp } = require( '@wordpress/scripts/utils' );
 const ROOT_PATH = process.cwd();
 const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
 const settings = getPackageProp( 'byteever' ) || {};
+const i18n = settings.i18n || {};
 
 /**
  * Entries declared in package.json under byteever.entries — a string path,
@@ -76,11 +77,7 @@ const customize = ( config ) => {
 			 * @see ../plugins/textdomain-plugin.js
 			 */
 			new TextDomainPlugin( {
-				textdomain:
-					settings.textdomain ||
-					getPackageProp( 'textDomain' ) ||
-					getPackageProp( 'name' ) ||
-					'',
+				textdomain: settings.textdomain || getPackageProp( 'name' ) || '',
 				updateDomains: settings.updateDomains || [ 'byteever' ],
 				src: settings.src || [ 'vendor/byteever/**/*.php' ],
 			} ),
