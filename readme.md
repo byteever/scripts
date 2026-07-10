@@ -1,96 +1,58 @@
 # @byteever/scripts
 
-Webpack configuration wrapper for WordPress plugins extending `@wordpress/scripts`.
+Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/) wrapper for ByteEver plugins.
 
-## Installation
+## What it does
 
-```bash
-npm install @byteever/scripts @wordpress/scripts --save-dev
-```
+- Source at `assets/src/`, output at `assets/build/` — no flags, no config.
+- Copies block `block.json` and PHP files (`render.php`) into the build.
+- Composes safely whether `@wordpress/scripts` exports one config or the `[ scripts, modules ]` pair (`--experimental-modules`).
+- Discovers entries by convention: `assets/src/{name}/index.js` → `{name}`, `assets/src/modules/{name}/index.js` → `modules/{name}`, plus block entries from `block.json`.
+- Emits async chunks to `chunks/`.
+- Replaces the `byteever` text domain with the plugin's own domain in vendor PHP, project JS, and `@byteever/*` packages.
+- Extended dependency extraction for cross-plugin shared libraries.
 
-## Usage
+## Setup
 
-### Webpack Configuration
-
-Use the pre-configured webpack config in your `webpack.config.js`:
-
-```js
-const baseConfig = require('@byteever/scripts/config/webpack.config');
-
-module.exports = {
-  ...baseConfig,
-  entry: {
-    ...baseConfig.entry,
-    'client/index': './assets/src/client/index.js',
-  },
-};
-```
-
-## Features
-
-### Pre-configured Webpack
-- Extends `@wordpress/scripts` webpack config
-- Default paths: `assets/src/` → `assets/build/` (via `WP_SOURCE_PATH` env var)
-- Chunks output to `chunks/` subdirectory
-- Clean stats output
-
-### Plugins Included
-- **TextDomainPlugin** - Replaces `byteever` text domain in PHP vendor files and JS assets
-- **ScriptExternalsPlugin** - Handles custom script externals for shared libraries
-- **RtlChunkCleanupPlugin** - Removes RTL CSS from chunks (keeps only entry points)
-- **CopyWebpackPlugin** - Auto-copies images and fonts
-- **MomentTimezoneDataPlugin** - Reduces timezone data size
-- **RemoveEmptyScriptsPlugin** - Cleans up empty JS from CSS-only entries
-- **WebpackBar** - Clean progress bar
-
-### Script Externals
-
-Share JavaScript libraries across plugins using webpack externals:
-
-**Producer** (exposes library on window):
-```js
-// webpack.config.js
-module.exports = {
-  ...baseConfig,
-  entry: {
-    shared: {
-      import: './assets/src/shared.js',
-      library: { name: ['starter', 'shared'], type: 'window' },
-    },
-  },
-};
-```
-
-**Consumer** (imports from window):
-```js
-// webpack.config.js
-module.exports = {
-  ...baseConfig,
-  externals: {
-    ...baseConfig.externals,
-    '@starter/shared': ['starter', 'shared'],
-  },
-};
-```
-
-The `ScriptExternalsPlugin` automatically generates correct WordPress script handles in `.asset.php` files.
-
-## Configuration
-
-### Extend Config
-
-Add custom webpack configuration:
+`webpack.config.js`:
 
 ```js
-const baseConfig = require('@byteever/scripts/config/webpack.config');
-
-module.exports = {
-  ...baseConfig,
-  devtool: 'source-map',
-  // ... custom config
-};
+module.exports = require( '@byteever/scripts/config/webpack.config' );
 ```
 
-## License
+`package.json`:
 
-GPL-2.0-or-later
+```json
+{
+	"scripts": {
+		"start": "wp-scripts start --experimental-modules --blocks-manifest",
+		"build": "wp-scripts build --experimental-modules --blocks-manifest"
+	}
+}
+```
+
+## package.json options
+
+Under a `byteever` key:
+
+```json
+{
+	"byteever": {
+		"entries": {
+			"gateway": "assets/src/payments/gateway.js",
+			"shared": {
+				"import": "assets/src/shared/index.js",
+				"library": { "name": [ "byteever", "shared" ], "type": "window" }
+			}
+		},
+		"externals": {
+			"@byteever/shared": [ "byteever", "shared" ]
+		}
+	}
+}
+```
+
+- `entries` — extra entry points; a string path, or a webpack entry descriptor for producers exposing a shared library.
+- `externals` — scoped packages consumed from another plugin's shared library; handles are written into `.asset.php` as `{scope}-{name}`.
+
+The text domain is detected from `textDomain`, falling back to `name`.
