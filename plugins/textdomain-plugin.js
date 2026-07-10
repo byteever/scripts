@@ -3,7 +3,7 @@
  *
  * Replaces the 'byteever' text domain with the consumer plugin's own domain.
  *
- * - Vendor PHP: rewrites the domain argument of i18n calls in vendor/byteever.
+ * - Vendor PHP: runs the wordpress-i18n add-textdomain tool on vendor/byteever.
  * - Project JS: injects @automattic/babel-plugin-replace-textdomain into babel-loader.
  * - Packages: runs node_modules/@byteever JS through the same transform.
  *
@@ -15,19 +15,19 @@
  */
 const path = require( 'path' );
 const fs = require( 'fs' );
+const os = require( 'os' );
+const { sync: spawn } = require( 'cross-spawn' );
 
 /**
- * Internal dependencies
+ * WordPress dependencies
  */
-const { getPackageProp } = require( '../utils' );
+const { getPackageProp } = require( '@wordpress/scripts/utils' );
 
 const PLUGIN_NAME = 'TextDomainPlugin';
+const REPLACE_DOMAIN = 'byteever';
 
 let phpRewritten = false;
 const injectedRules = new WeakSet();
-const REPLACE_DOMAIN = 'byteever';
-const I18N_DOMAIN_ARG =
-	/((?<![\w$])(?:__|_e|_x|_ex|_n|_nx|_n_noop|_nx_noop|esc_attr__|esc_attr_e|esc_attr_x|esc_html__|esc_html_e|esc_html_x)\s*\((?:[^()]|\([^()]*\))*?,\s*)(['"])byteever\2(\s*\))/g;
 
 class TextDomainPlugin {
 	apply( compiler ) {
@@ -51,7 +51,7 @@ class TextDomainPlugin {
 	}
 
 	/**
-	 * Replace the text domain in vendor PHP i18n calls.
+	 * Replace the text domain in vendor PHP files via the wordpress-i18n tool.
 	 */
 	replacePhpTextDomain( rootPath, textDomain ) {
 		const vendorPath = path.resolve( rootPath, 'vendor/byteever' );
@@ -60,7 +60,7 @@ class TextDomainPlugin {
 			return;
 		}
 
-		let changed = 0;
+		const files = [];
 		const walk = ( dir ) => {
 			for ( const entry of fs.readdirSync( dir, {
 				withFileTypes: true,
@@ -69,23 +69,59 @@ class TextDomainPlugin {
 				if ( entry.isDirectory() ) {
 					walk( full );
 				} else if ( entry.name.endsWith( '.php' ) ) {
-					const source = fs.readFileSync( full, 'utf8' );
-					const output = source.replace(
-						I18N_DOMAIN_ARG,
-						`$1$2${ textDomain }$2$3`
-					);
-					if ( output !== source ) {
-						fs.writeFileSync( full, output );
-						changed++;
-					}
+					files.push( full );
 				}
 			}
 		};
 		walk( vendorPath );
 
-		if ( changed > 0 ) {
-			// eslint-disable-next-line no-console
-			console.log( `${ PLUGIN_NAME }: Updated ${ changed } PHP file(s).` );
+		if ( ! files.length ) {
+			return;
+		}
+
+		const argsFile = path.join(
+			os.tmpdir(),
+			`b8-textdomain-${ process.pid }.json`
+		);
+
+		fs.writeFileSync(
+			argsFile,
+			JSON.stringify( {
+				textdomain: textDomain,
+				files,
+				'update-domains': [ REPLACE_DOMAIN ],
+				'dry-run': false,
+			} )
+		);
+
+		try {
+			const result = spawn(
+				'php',
+				[
+					path.resolve(
+						__dirname,
+						'../bin/php/node-add-textdomain.php'
+					),
+					argsFile,
+				],
+				{ stdio: 'pipe' }
+			);
+
+			if ( result.error || 0 !== result.status ) {
+				// eslint-disable-next-line no-console
+				console.warn(
+					`${ PLUGIN_NAME }: skipped vendor PHP rewrite (${
+						result.error?.code === 'ENOENT'
+							? 'php not found'
+							: result.stderr?.toString().trim() ||
+							  'unknown error'
+					}).`
+				);
+			}
+		} finally {
+			try {
+				fs.unlinkSync( argsFile );
+			} catch {}
 		}
 	}
 

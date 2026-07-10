@@ -12,14 +12,12 @@
 		"node": ">=20.10.0"
 	},
 	"files": [
+		"bin",
 		"config",
 		"plugins",
-		"utils",
-		"index.js"
+		"utils"
 	],
-	"main": "index.js",
 	"exports": {
-		".": "./index.js",
 		"./config/webpack.config": "./config/webpack.config.js",
 		"./plugins/*": "./plugins/*.js",
 		"./utils": "./utils/index.js",
@@ -28,9 +26,13 @@
 	"dependencies": {
 		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",
 		"@wordpress/dependency-extraction-webpack-plugin": "^6.50.0",
+		"cross-spawn": "^7.0.6",
 		"webpack-remove-empty-scripts": "^1.1.1"
 	},
 	"peerDependencies": {
 		"@wordpress/scripts": ">=32.0.0"
+	},
+	"bin": {
+		"b8-scripts": "./bin/b8-scripts.js"
 	}
 }

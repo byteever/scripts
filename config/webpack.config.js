@@ -24,9 +24,11 @@ if ( ! process.env.WP_COPY_PHP_FILES_TO_DIST ) {
  * WordPress dependencies — loaded after the env defaults above.
  */
 const baseConfig = require( '@wordpress/scripts/config/webpack.config' );
+const { getPackageProp } = require( '@wordpress/scripts/utils' );
 
 const ROOT_PATH = process.cwd();
 const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
+const settings = getPackageProp( 'byteever' ) || {};
 
 /**
  * Apply the ByteEver conventions to one base config.
@@ -34,9 +36,9 @@ const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
  * The base export is a single config, or [ scripts, modules ] when script
  * modules are enabled; the module half keeps its own entries and externals.
  */
-const customize = ( config, overrides ) => {
+const customize = ( config ) => {
 	const isModule = !! config.output?.module;
-	const entry = config.entry;
+	const entry = typeof config.entry === 'function' ? config.entry() : config.entry;
 	const plugins = [ ...( config.plugins || [] ) ];
 
 	const miniCss = plugins.find(
@@ -48,8 +50,7 @@ const customize = ( config, overrides ) => {
 
 	if ( ! isModule ) {
 		const manifest = plugins.findIndex(
-			( plugin ) =>
-				'BlocksManifestPlugin' === plugin?.constructor?.name
+			( plugin ) => 'BlocksManifestPlugin' === plugin?.constructor?.name
 		);
 		if ( -1 !== manifest ) {
 			/**
@@ -101,33 +102,28 @@ const customize = ( config, overrides ) => {
 		...( isModule
 			? {}
 			: {
-					entry: () => {
-						const entries = {
-							...( typeof entry === 'function'
-								? entry()
-								: entry ),
-						};
-
-						for ( const [ name, extra ] of Object.entries(
-							overrides.entry || {}
-						) ) {
-							entries[ name ] =
-								typeof extra === 'string'
-									? path.resolve( ROOT_PATH, extra )
-									: {
-											...extra,
-											import: path.resolve(
-												ROOT_PATH,
-												extra.import
-											),
-									  };
-						}
-
-						return entries;
+					entry: {
+						...entry,
+						...Object.fromEntries(
+							Object.entries( settings.entries || {} ).map(
+								( [ name, file ] ) => [
+									name,
+									typeof file === 'string'
+										? path.resolve( ROOT_PATH, file )
+										: {
+												...file,
+												import: path.resolve(
+													ROOT_PATH,
+													file.import
+												),
+										  },
+								]
+							)
+						),
 					},
 					externals: {
 						...config.externals,
-						...( overrides.externals || {} ),
+						...( settings.externals || {} ),
 					},
 			  } ),
 		output: {
@@ -152,16 +148,8 @@ const customize = ( config, overrides ) => {
 	};
 };
 
-/**
- * Build the webpack config with the plugin's overrides.
- *
- * Returns what webpack consumes — the config object, or the pair when
- * script modules are enabled — so consumers never branch on the shape.
- */
-module.exports = ( overrides = {} ) => {
-	const configs = (
-		Array.isArray( baseConfig ) ? baseConfig : [ baseConfig ]
-	).map( ( config ) => customize( config, overrides ) );
+const configs = (
+	Array.isArray( baseConfig ) ? baseConfig : [ baseConfig ]
+).map( customize );
 
-	return Array.isArray( baseConfig ) ? configs : configs[ 0 ];
-};
+module.exports = Array.isArray( baseConfig ) ? configs : configs[ 0 ];
