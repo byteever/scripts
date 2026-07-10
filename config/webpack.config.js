@@ -149,7 +149,8 @@ const customize = ( config ) => {
 	};
 };
 
-// Always an array: [ scripts ] or [ scripts, modules ]. Consumers map over it.
-module.exports = (
+const configs = (
 	Array.isArray( baseConfig ) ? baseConfig : [ baseConfig ]
 ).map( customize );
+
+module.exports = Array.isArray( baseConfig ) ? configs : configs[ 0 ];
