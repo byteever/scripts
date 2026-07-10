@@ -63,7 +63,7 @@ Under the `byteever` key in `package.json`:
 }
 ```
 
-- `i18n` — text domain handling. `textdomain` is detected from `textDomain`, falling back to `name`, when not set; `updateDomains` lists the domains to replace (`true` for all) and defaults to `[ "byteever" ]`; `include`/`exclude` take directories or glob patterns — PHP files are selected internally:
+- `i18n` — text domain handling. `textdomain` is detected from the package `name` when not set; `updateDomains` lists the domains to replace (`true` for all) and defaults to `[ "byteever" ]`; `include`/`exclude` take directories or glob patterns — PHP files are selected internally:
 
 ```json
 {

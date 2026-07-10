@@ -75,7 +75,7 @@ const customize = ( config ) => {
 			 */
 			new TextDomainPlugin( {
 				textdomain: getPackageOption(
-					[ 'byteever.i18n.textdomain', 'textDomain', 'name' ],
+					[ 'byteever.i18n.textdomain', 'name' ],
 					''
 				),
 				updateDomains: getPackageOption(

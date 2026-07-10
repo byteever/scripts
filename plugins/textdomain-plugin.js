@@ -7,7 +7,7 @@
  * - Project JS: injects @automattic/babel-plugin-replace-textdomain into babel-loader.
  * - Packages: runs node_modules/@byteever JS through the same transform.
  *
- * Text domain detected from package.json: textDomain → name → folder name.
+ * Text domain detected from package.json: name → folder name.
  */
 
 /**
@@ -36,7 +36,7 @@ class TextDomainPlugin {
 	 *
 	 * @param {Object}        options               Plugin options.
 	 * @param {string}        options.textdomain    Project text domain. Detected from
-	 *                                              package.json (textDomain → name → folder) when empty.
+	 *                                              package.json (name → folder) when empty.
 	 * @param {Array|boolean} options.updateDomains List of text domains to replace, or true for all.
 	 * @param {string[]}      options.include       Directories or glob patterns holding the PHP files to rewrite.
 	 * @param {string[]}      options.exclude       Directories or glob patterns to skip.
@@ -56,7 +56,6 @@ class TextDomainPlugin {
 		const { updateDomains } = this.options;
 		const textDomain = (
 			this.options.textdomain ||
-			getPackageProp( 'textDomain' ) ||
 			getPackageProp( 'name' ) ||
 			path.basename( rootPath )
 		)
