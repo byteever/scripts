@@ -21,14 +21,16 @@ const { getScriptArgs } = require( '../utils' );
 
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
 
-// Default the browserslist to the WordPress config when the project has none.
+// Default the browserslist to the WordPress config when the project has
+// none, so autoprefixer matches the webpack target fallback.
 if (
 	! process.env.BROWSERSLIST_CONFIG &&
 	! getPackageProp( 'browserslist' ) &&
-	! hasProjectFile( '.browserslistrc' )
+	! hasProjectFile( '.browserslistrc' ) &&
+	! hasProjectFile( 'browserslist' )
 ) {
 	process.env.BROWSERSLIST_CONFIG = require.resolve(
-		'../config/.browserslistrc'
+		'@wordpress/scripts/config/.browserslistrc'
 	);
 }
 

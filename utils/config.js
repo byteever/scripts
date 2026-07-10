@@ -33,6 +33,8 @@ const getPackageOption = ( paths, fallback ) => {
 /**
  * Whether the project provides its own webpack config.
  *
+ * Mirrors the unexported check in @wordpress/scripts, plus the -c alias.
+ *
  * @return {boolean} Whether a project webpack config exists.
  */
 const hasWebpackConfig = () =>
