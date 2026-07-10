@@ -31,7 +31,8 @@
 		"./config/webpack.config": "./config/webpack.config.js",
 		"./plugins/*": "./plugins/*.js",
 		"./utils": "./utils/index.js",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./config/prettier.config": "./config/prettier.config.js"
 	},
 	"bin": {
 		"byteever-scripts": "./bin/byteever-scripts.js"
@@ -39,6 +40,7 @@
 	"dependencies": {
 		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",
 		"@wordpress/browserslist-config": "^6.37.0",
+		"@wordpress/prettier-config": "^4.37.0",
 		"cross-spawn": "^7.0.6",
 		"node-wp-i18n": "^1.2.8",
 		"webpack-remove-empty-scripts": "^1.1.1"
