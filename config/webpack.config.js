@@ -45,62 +45,39 @@ const STATS = {
  * modules are enabled; the module half keeps its own entries and externals.
  */
 const customize = ( config ) => {
-	const plugins = [ ...( config.plugins || [] ) ];
-
 	/**
 	 * Extract CSS chunks next to the script chunks.
 	 */
-	const miniCss = plugins.find(
+	const miniCss = config.plugins?.find(
 		( plugin ) => 'MiniCssExtractPlugin' === plugin?.constructor?.name
 	);
 	if ( miniCss ) {
 		miniCss.options.chunkFilename = 'chunks/[name].css';
 	}
 
-	/**
-	 * Replace text domains in PHP vendor files and JS assets.
-	 * Auto-detects text domain from package.json (textDomain → name → folder).
-	 *
-	 * @see ../plugins/textdomain-plugin.js
-	 */
-	plugins.push( new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ) );
-
 	const base = {
 		...config,
-		output: { ...config.output, path: OUTPUT_PATH },
-		plugins,
+		output: {
+			...config.output,
+			path: OUTPUT_PATH,
+		},
+		plugins: [
+			...( config.plugins || [] ),
+
+			/**
+			 * Replace text domains in PHP vendor files and JS assets.
+			 * Auto-detects text domain from package.json (textDomain → name → folder).
+			 *
+			 * @see ../plugins/textdomain-plugin.js
+			 */
+			new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ),
+		],
 		stats: STATS,
 	};
 
 	if ( config.output?.module ) {
 		return base;
 	}
-
-	const dewp = plugins.findIndex(
-		( plugin ) =>
-			'DependencyExtractionWebpackPlugin' === plugin?.constructor?.name
-	);
-	if ( -1 !== dewp ) {
-		/**
-		 * Extended dependency extraction that handles custom script externals.
-		 * Reads externals from webpack config and generates correct handles in .asset.php.
-		 *
-		 * @see ../plugins/script-externals.js
-		 */
-		plugins.splice( dewp, 1, new ScriptExternalsPlugin() );
-	}
-
-	/**
-	 * Remove empty scripts emitted for CSS-only entry points.
-	 *
-	 * @see https://www.npmjs.com/package/webpack-remove-empty-scripts
-	 */
-	plugins.push(
-		new RemoveEmptyScriptsPlugin( {
-			stage: RemoveEmptyScriptsPlugin.STAGE_AFTER_PROCESS_PLUGINS,
-			remove: /\.js$/,
-		} )
-	);
 
 	const entry = {
 		...( typeof config.entry === 'function'
@@ -118,12 +95,40 @@ const customize = ( config ) => {
 	return {
 		...base,
 		entry,
-		externals: { ...base.externals, ...( settings.externals || {} ) },
+		externals: {
+			...base.externals,
+			...( settings.externals || {} ),
+		},
 		output: {
 			...base.output,
 			chunkFilename: 'chunks/[name].js',
 			enabledLibraryTypes: [ 'window' ],
 		},
+		plugins: [
+			...base.plugins.filter(
+				( plugin ) =>
+					'DependencyExtractionWebpackPlugin' !==
+					plugin?.constructor?.name
+			),
+
+			/**
+			 * Extended dependency extraction that handles custom script externals.
+			 * Reads externals from webpack config and generates correct handles in .asset.php.
+			 *
+			 * @see ../plugins/script-externals.js
+			 */
+			new ScriptExternalsPlugin(),
+
+			/**
+			 * Remove empty scripts emitted for CSS-only entry points.
+			 *
+			 * @see https://www.npmjs.com/package/webpack-remove-empty-scripts
+			 */
+			new RemoveEmptyScriptsPlugin( {
+				stage: RemoveEmptyScriptsPlugin.STAGE_AFTER_PROCESS_PLUGINS,
+				remove: /\.js$/,
+			} ),
+		],
 	};
 };
 
