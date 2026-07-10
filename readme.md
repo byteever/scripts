@@ -64,7 +64,8 @@ Under the `byteever` key in `package.json`:
 ```
 
 - `textdomain` — the target text domain; detected from `textDomain`, falling back to `name`, when not set.
-- `updateDomains` — text domains to replace, or `true` for all; defaults to `[ "byteever" ]`:
+- `updateDomains` — text domains to replace, or `true` for all; defaults to `[ "byteever" ]`.
+- `vendorPath` — vendor directory holding the PHP files to rewrite; defaults to `vendor/byteever`:
 
 ```json
 {

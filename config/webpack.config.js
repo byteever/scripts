@@ -82,6 +82,7 @@ const customize = ( config ) => {
 					getPackageProp( 'name' ) ||
 					'',
 				updateDomains: settings.updateDomains || [ 'byteever' ],
+				vendorPath: settings.vendorPath || 'vendor/byteever',
 			} ),
 			new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ),
 		],

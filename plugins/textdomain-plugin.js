@@ -35,11 +35,13 @@ class TextDomainPlugin {
 	 * @param {string}        options.textdomain    Project text domain. Detected from
 	 *                                              package.json (textDomain → name → folder) when empty.
 	 * @param {Array|boolean} options.updateDomains List of text domains to replace, or true for all.
+	 * @param {string}        options.vendorPath    Vendor directory holding the PHP files to rewrite.
 	 */
 	constructor( options = {} ) {
 		this.options = {
 			textdomain: '',
 			updateDomains: [],
+			vendorPath: 'vendor/byteever',
 			...options,
 		};
 	}
@@ -101,7 +103,7 @@ class TextDomainPlugin {
 	 * Replace the text domain in vendor PHP files via node-wp-i18n.
 	 */
 	replacePhpTextDomain( rootPath, textDomain ) {
-		const vendorPath = path.resolve( rootPath, 'vendor/byteever' );
+		const vendorPath = path.resolve( rootPath, this.options.vendorPath );
 
 		if ( ! fs.existsSync( vendorPath ) ) {
 			return Promise.resolve();
