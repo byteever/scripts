@@ -24,6 +24,7 @@ const { getPackageProp } = require( '../utils' );
 const PLUGIN_NAME = 'TextDomainPlugin';
 
 let phpRewritten = false;
+const injectedRules = new WeakSet();
 const REPLACE_DOMAIN = 'byteever';
 const I18N_DOMAIN_ARG =
 	/((?<![\w$])(?:__|_e|_x|_ex|_n|_nx|_n_noop|_nx_noop|esc_attr__|esc_attr_e|esc_attr_x|esc_html__|esc_html_e|esc_html_x)\s*\((?:[^()]|\([^()]*\))*?,\s*)(['"])byteever\2(\s*\))/g;
@@ -97,6 +98,7 @@ class TextDomainPlugin {
 			{ textdomain: { [ REPLACE_DOMAIN ]: textDomain } },
 		];
 
+		// The script and module configs share rule objects; inject once.
 		for ( const rule of compiler.options.module.rules ) {
 			for ( const use of [].concat( rule?.use || [] ) ) {
 				if (
@@ -104,13 +106,24 @@ class TextDomainPlugin {
 					/babel-loader/.test( use.loader || '' )
 				) {
 					use.options = use.options || {};
-					use.options.plugins = [
-						...( use.options.plugins || [] ),
-						plugin,
-					];
+					use.options.plugins = use.options.plugins || [];
+					if (
+						! use.options.plugins.some(
+							( entry ) =>
+								Array.isArray( entry ) &&
+								entry[ 0 ] === plugin[ 0 ]
+						)
+					) {
+						use.options.plugins.push( plugin );
+					}
 				}
 			}
 		}
+
+		if ( injectedRules.has( compiler.options.module.rules ) ) {
+			return;
+		}
+		injectedRules.add( compiler.options.module.rules );
 
 		compiler.options.module.rules.push( {
 			test: /\.js$/,

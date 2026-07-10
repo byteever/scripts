@@ -7,6 +7,7 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 /**
  * Internal dependencies
  */
+const BlocksManifestPlugin = require( '../plugins/blocks-manifest' );
 const ScriptExternalsPlugin = require( '../plugins/script-externals' );
 const TextDomainPlugin = require( '../plugins/textdomain-plugin' );
 const { getPackageProp, SOURCE_DIR, OUTPUT_DIR } = require( '../utils' );
@@ -47,6 +48,19 @@ const customize = ( config ) => {
 	}
 
 	if ( ! isModule ) {
+		const manifest = plugins.findIndex(
+			( plugin ) =>
+				'BlocksManifestPlugin' === plugin?.constructor?.name
+		);
+		if ( -1 !== manifest ) {
+			/**
+			 * Generate the manifest inside the blocks directory.
+			 *
+			 * @see ../plugins/blocks-manifest.js
+			 */
+			plugins.splice( manifest, 1, new BlocksManifestPlugin() );
+		}
+
 		const dewp = plugins.findIndex(
 			( plugin ) =>
 				'DependencyExtractionWebpackPlugin' ===
