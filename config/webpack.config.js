@@ -76,7 +76,11 @@ const customize = ( config ) => {
 			 * @see ../plugins/textdomain-plugin.js
 			 */
 			new TextDomainPlugin( {
-				textdomain: settings.textdomain || '',
+				textdomain:
+					settings.textdomain ||
+					getPackageProp( 'textDomain' ) ||
+					getPackageProp( 'name' ) ||
+					'',
 				updateDomains: settings.updateDomains || [ 'byteever' ],
 			} ),
 			new TextDomainPlugin( { updateDomains: [ 'byteever' ] } ),
