@@ -42,6 +42,7 @@
 		"@wordpress/prettier-config": "^4.37.0",
 		"cross-spawn": "^7.0.6",
 		"node-wp-i18n": "^1.2.8",
+		"prettier": "npm:wp-prettier@^3.0.3",
 		"webpack-remove-empty-scripts": "^1.1.1"
 	},
 	"peerDependencies": {
