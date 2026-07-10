@@ -21,6 +21,11 @@ const { getScriptArgs } = require( '../utils' );
 
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
 
+// Lint through the eslintrc format when the project uses it.
+if ( hasProjectFile( '.eslintrc.js' ) && ! hasProjectFile( 'eslint.config.js' ) ) {
+	process.env.ESLINT_USE_FLAT_CONFIG = 'false';
+}
+
 // Default the browserslist to the WordPress config when the project has
 // none, so autoprefixer matches the webpack target fallback.
 if (
