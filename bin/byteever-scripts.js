@@ -39,16 +39,17 @@ const useByteeverConfig = ( args ) => {
 	];
 };
 
-// Commands with customized arguments; everything else forwards verbatim.
-const commands = {
-	build: useByteeverConfig,
-	start: useByteeverConfig,
-};
-
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
-const args = commands[ scriptName ]
-	? commands[ scriptName ]( scriptArgs )
-	: scriptArgs;
+
+// Commands with customized arguments; everything else forwards verbatim.
+let args = scriptArgs;
+
+switch ( scriptName ) {
+	case 'build':
+	case 'start':
+		args = useByteeverConfig( scriptArgs );
+		break;
+}
 
 // Default the browserslist to the WordPress config when the project has none.
 if (
