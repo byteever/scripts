@@ -15,20 +15,40 @@ const {
 	hasProjectFile,
 } = require( '@wordpress/scripts/utils' );
 
+/**
+ * Run a webpack command through the ByteEver config unless the project
+ * provides its own.
+ *
+ * @param {string[]} args Script arguments.
+ * @return {string[]} Arguments to forward.
+ */
+const useByteeverConfig = ( args ) => {
+	if (
+		hasArgInCLI( '--config' ) ||
+		hasArgInCLI( '-c' ) ||
+		hasProjectFile( 'webpack.config.js' ) ||
+		hasProjectFile( 'webpack.config.babel.js' )
+	) {
+		return args;
+	}
+
+	return [
+		...args,
+		'--config',
+		require.resolve( '../config/webpack.config.js' ),
+	];
+};
+
+// Commands with customized arguments; everything else forwards verbatim.
+const commands = {
+	build: useByteeverConfig,
+	start: useByteeverConfig,
+};
+
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
-
-// Build commands run through the ByteEver webpack config unless the project provides one.
-const WEBPACK_SCRIPTS = [ 'build', 'start' ];
-
-if (
-	WEBPACK_SCRIPTS.includes( scriptName ) &&
-	! hasArgInCLI( '--config' ) &&
-	! hasArgInCLI( '-c' ) &&
-	! hasProjectFile( 'webpack.config.js' ) &&
-	! hasProjectFile( 'webpack.config.babel.js' )
-) {
-	scriptArgs.push( '--config', require.resolve( '../config/webpack.config.js' ) );
-}
+const args = commands[ scriptName ]
+	? commands[ scriptName ]( scriptArgs )
+	: scriptArgs;
 
 // Default the browserslist to the WordPress config when the project has none.
 if (
@@ -47,7 +67,7 @@ const { status } = spawn(
 		...nodeArgs,
 		require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ),
 		scriptName,
-		...scriptArgs,
+		...args,
 	],
 	{
 		stdio: 'inherit',
