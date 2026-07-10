@@ -1,44 +1,35 @@
 {
 	"name": "@byteever/scripts",
-	"version": "3.1.0",
-	"description": "Webpack configuration wrapper for WordPress plugins and themes",
-	"author": "ByteEver Team",
+	"version": "4.0.0",
+	"description": "Zero-config @wordpress/scripts wrapper for ByteEver plugins: assets/src in, assets/build out.",
+	"author": "ByteEver",
 	"license": "GPL-2.0-or-later",
-	"keywords": [
-		"webpack",
-		"wordpress",
-		"config",
-		"plugin",
-		"theme",
-		"build"
-	],
-	"homepage": "https://github.com/byteever/modules/tree/master/packages/scripts#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/byteever/modules.git",
-		"directory": "packages/scripts"
-	},
-	"bugs": {
-		"url": "https://github.com/byteever/modules/issues"
+		"url": "https://github.com/byteever/scripts.git"
 	},
 	"engines": {
-		"node": ">=20.10.0",
-		"npm": ">=10.2.3"
+		"node": ">=20.10.0"
+	},
+	"files": [
+		"config",
+		"plugins",
+		"utils"
+	],
+	"exports": {
+		"./config/webpack.config": "./config/webpack.config.js",
+		"./plugins/*": "./plugins/*.js",
+		"./utils": "./utils/index.js",
+		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"@automattic/babel-plugin-replace-textdomain": "^1.1.0",
-		"cross-spawn": "^7.0.6",
-		"moment-timezone-data-webpack-plugin": "^1.5.1",
+		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",
+		"@wordpress/dependency-extraction-webpack-plugin": "^6.50.0",
+		"glob": "^13.0.6",
 		"webpack-remove-empty-scripts": "^1.1.1",
 		"webpackbar": "^7.0.0"
 	},
 	"peerDependencies": {
-		"@wordpress/scripts": ">=30.0.0"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"scripts": {
-		"update": "npx npm-check-updates -u"
+		"@wordpress/scripts": ">=32.0.0"
 	}
 }
