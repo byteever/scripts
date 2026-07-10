@@ -2,7 +2,6 @@
  * External dependencies
  */
 const path = require( 'path' );
-const { globSync } = require( 'glob' );
 const WebpackBar = require( 'webpackbar' );
 const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 
@@ -27,39 +26,16 @@ if ( ! process.env.WP_COPY_PHP_FILES_TO_DIST ) {
 const baseConfig = require( '@wordpress/scripts/config/webpack.config' );
 
 const ROOT_PATH = process.cwd();
-const SOURCE_PATH = path.resolve( ROOT_PATH, process.env.WP_SOURCE_PATH );
 const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
 const settings = getPackageProp( 'byteever' ) || {};
 
 /**
- * Entries discovered by convention and declared in package.json.
+ * Entries declared in package.json under byteever.entries.
  *
- * - assets/src/{name}/index.js         → {name}
- * - assets/src/modules/{name}/index.js → modules/{name}
- * - package.json byteever.entries      → verbatim, string or entry descriptor
+ * A string path, or a webpack entry descriptor for library producers.
  */
 const getExtraEntries = () => {
 	const entries = {};
-
-	for ( const file of globSync( '*/index.js', {
-		cwd: SOURCE_PATH,
-		posix: true,
-	} ) ) {
-		const name = path.posix.dirname( file );
-		if ( 'blocks' !== name && 'modules' !== name ) {
-			entries[ name ] = path.resolve( SOURCE_PATH, file );
-		}
-	}
-
-	for ( const file of globSync( 'modules/*/index.js', {
-		cwd: SOURCE_PATH,
-		posix: true,
-	} ) ) {
-		entries[ path.posix.dirname( file ) ] = path.resolve(
-			SOURCE_PATH,
-			file
-		);
-	}
 
 	for ( const [ name, entry ] of Object.entries( settings.entries || {} ) ) {
 		entries[ name ] =

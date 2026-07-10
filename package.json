@@ -25,7 +25,6 @@
 	"dependencies": {
 		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",
 		"@wordpress/dependency-extraction-webpack-plugin": "^6.50.0",
-		"glob": "^13.0.6",
 		"webpack-remove-empty-scripts": "^1.1.1",
 		"webpackbar": "^7.0.0"
 	},

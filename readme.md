@@ -7,7 +7,7 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 - Source at `assets/src/`, output at `assets/build/` — no flags, no config.
 - Copies block `block.json` and PHP files (`render.php`) into the build.
 - Composes safely whether `@wordpress/scripts` exports one config or the `[ scripts, modules ]` pair (`--experimental-modules`).
-- Discovers entries by convention: `assets/src/{name}/index.js` → `{name}`, `assets/src/modules/{name}/index.js` → `modules/{name}`, plus block entries from `block.json`.
+- Entries are declared explicitly in `package.json` under `byteever.entries`; block entries come from `block.json`.
 - Emits async chunks to `chunks/`.
 - Replaces the `byteever` text domain with the plugin's own domain in vendor PHP, project JS, and `@byteever/*` packages.
 - Extended dependency extraction for cross-plugin shared libraries.
