@@ -4,9 +4,19 @@
 	"description": "Zero-config @wordpress/scripts wrapper for ByteEver plugins: assets/src in, assets/build out.",
 	"author": "ByteEver",
 	"license": "GPL-2.0-or-later",
+	"keywords": [
+		"wordpress",
+		"wp-scripts",
+		"webpack",
+		"build"
+	],
+	"homepage": "https://github.com/byteever/scripts",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/byteever/scripts.git"
+	},
+	"bugs": {
+		"url": "https://github.com/byteever/scripts/issues"
 	},
 	"engines": {
 		"node": ">=20.10.0"
@@ -17,6 +27,9 @@
 		"plugins",
 		"utils"
 	],
+	"bin": {
+		"byteever-scripts": "./bin/byteever-scripts.js"
+	},
 	"exports": {
 		"./config/webpack.config": "./config/webpack.config.js",
 		"./plugins/*": "./plugins/*.js",
@@ -31,8 +44,5 @@
 	},
 	"peerDependencies": {
 		"@wordpress/scripts": ">=32.0.0"
-	},
-	"bin": {
-		"byteever-scripts": "./bin/byteever-scripts.js"
 	}
 }

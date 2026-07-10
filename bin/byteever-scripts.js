@@ -41,16 +41,6 @@ const useByteeverConfig = ( args ) => {
 
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
 
-// Commands with customized arguments; everything else forwards verbatim.
-let args = scriptArgs;
-
-switch ( scriptName ) {
-	case 'build':
-	case 'start':
-		args = useByteeverConfig( scriptArgs );
-		break;
-}
-
 // Default the browserslist to the WordPress config when the project has none.
 if (
 	! process.env.BROWSERSLIST_CONFIG &&
@@ -68,7 +58,9 @@ const { status } = spawn(
 		...nodeArgs,
 		require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ),
 		scriptName,
-		...args,
+		...( [ 'build', 'start' ].includes( scriptName )
+			? useByteeverConfig( scriptArgs )
+			: scriptArgs ),
 	],
 	{
 		stdio: 'inherit',
