@@ -38,6 +38,7 @@
 	},
 	"dependencies": {
 		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",
+		"@wordpress/browserslist-config": "^6.37.0",
 		"cross-spawn": "^7.0.6",
 		"node-wp-i18n": "^1.2.8",
 		"webpack-remove-empty-scripts": "^1.1.1"
