@@ -8,7 +8,7 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 - Source at `assets/src/`, output at `assets/build/` — no flags, no config file.
 - Copies block `block.json` and PHP files (`render.php`) into the build; emits async chunks to `chunks/`.
 - Entries and externals are declared in `package.json` under the `byteever` key.
-- Defaults the browserslist to `@wordpress/browserslist-config` when the project declares none.
+- Defaults the browserslist to the wp-scripts fallback config when the project declares none, so autoprefixer matches the webpack target.
 - Replaces the `byteever` text domain with the plugin's own domain in vendor PHP (via node-wp-i18n), project JS, and `@byteever/*` packages; PHP i18n calls missing a domain get one added.
 - Extended dependency extraction for cross-plugin shared libraries.
 
@@ -98,4 +98,4 @@ With `--experimental-modules` the export is a `[ scripts, modules ]` array, matc
 
 ## Text domain
 
-The target domain is detected from `textDomain`, falling back to `name`, normalized to a slug; override it with `byteever.textdomain`. The domains to replace default to `[ "byteever" ]`; override with `byteever.updateDomains` (or `true` for all). Vendor PHP is rewritten in place via node-wp-i18n.
+The target domain is detected from `textDomain`, falling back to `name`, normalized to a slug; override it with `byteever.i18n.textdomain`. The domains to replace default to `[ "byteever" ]`; override with `byteever.i18n.updateDomains` (or `true` for all). Vendor PHP is rewritten in place via node-wp-i18n.
