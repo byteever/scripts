@@ -23,13 +23,19 @@ const WEBPACK_SCRIPTS = [ 'build', 'start' ];
 if (
 	WEBPACK_SCRIPTS.includes( args[ 0 ] ) &&
 	! hasArgInCLI( '--config' ) &&
-	! hasProjectFile( 'webpack.config.js' )
+	! hasArgInCLI( '-c' ) &&
+	! hasProjectFile( 'webpack.config.js' ) &&
+	! hasProjectFile( 'webpack.config.babel.js' )
 ) {
 	args.push( '--config', require.resolve( '../config/webpack.config.js' ) );
 }
 
 // Default the browserslist to the WordPress config when the project has none.
-if ( ! getPackageProp( 'browserslist' ) && ! hasProjectFile( '.browserslistrc' ) ) {
+if (
+	! process.env.BROWSERSLIST_CONFIG &&
+	! getPackageProp( 'browserslist' ) &&
+	! hasProjectFile( '.browserslistrc' )
+) {
 	process.env.BROWSERSLIST_CONFIG = require.resolve(
 		'../config/.browserslistrc'
 	);

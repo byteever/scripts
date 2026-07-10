@@ -64,6 +64,7 @@ const customize = ( config ) => {
 		output: {
 			...config.output,
 			path: OUTPUT_PATH,
+			chunkFilename: 'chunks/[name].js',
 		},
 		plugins: [
 			...( config.plugins || [] ),
@@ -104,7 +105,6 @@ const customize = ( config ) => {
 		},
 		output: {
 			...base.output,
-			chunkFilename: 'chunks/[name].js',
 			enabledLibraryTypes: [ 'window' ],
 		},
 		plugins: [

@@ -48,11 +48,15 @@ class TextDomainPlugin {
 	apply( compiler ) {
 		const rootPath = compiler.context;
 		const { updateDomains } = this.options;
-		const textDomain =
+		const textDomain = (
 			this.options.textdomain ||
 			getPackageProp( 'textDomain' ) ||
 			getPackageProp( 'name' ) ||
-			path.basename( rootPath );
+			path.basename( rootPath )
+		)
+			.toLowerCase()
+			.replace( /^@/, '' )
+			.replace( /[^a-z0-9-]+/g, '-' );
 
 		if (
 			! textDomain ||
