@@ -32,8 +32,8 @@ A blocks-only plugin passes nothing: `require( '@byteever/scripts' )()`.
 ```json
 {
 	"scripts": {
-		"start": "wp-scripts start --experimental-modules --blocks-manifest",
-		"build": "wp-scripts build --experimental-modules --blocks-manifest"
+		"start": "byteever-scripts start --experimental-modules --blocks-manifest",
+		"build": "byteever-scripts build --experimental-modules --blocks-manifest"
 	}
 }
 ```

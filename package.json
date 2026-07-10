@@ -33,6 +33,6 @@
 		"@wordpress/scripts": ">=32.0.0"
 	},
 	"bin": {
-		"b8-scripts": "./bin/b8-scripts.js"
+		"byteever-scripts": "./bin/byteever-scripts.js"
 	}
 }
