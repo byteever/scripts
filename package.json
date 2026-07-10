@@ -27,14 +27,14 @@
 		"plugins",
 		"utils"
 	],
-	"bin": {
-		"byteever-scripts": "./bin/byteever-scripts.js"
-	},
 	"exports": {
 		"./config/webpack.config": "./config/webpack.config.js",
 		"./plugins/*": "./plugins/*.js",
 		"./utils": "./utils/index.js",
 		"./package.json": "./package.json"
+	},
+	"bin": {
+		"byteever-scripts": "./bin/byteever-scripts.js"
 	},
 	"dependencies": {
 		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",

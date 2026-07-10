@@ -38,24 +38,15 @@ const { status } = spawn(
 		...nodeArgs,
 		require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ),
 		scriptName,
-		// Commands with customized arguments; everything else forwards verbatim.
-		...( () => {
-			switch ( scriptName ) {
-				case 'build':
-				case 'start':
-					return hasWebpackConfig()
-						? scriptArgs
-						: [
-								...scriptArgs,
-								'--config',
-								require.resolve(
-									'../config/webpack.config.js'
-								),
-						  ];
-				default:
-					return scriptArgs;
-			}
-		} )(),
+		// build and start run through the ByteEver config; everything else forwards verbatim.
+		...( ! [ 'build', 'start' ].includes( scriptName ) ||
+		hasWebpackConfig()
+			? scriptArgs
+			: [
+					...scriptArgs,
+					'--config',
+					require.resolve( '../config/webpack.config.js' ),
+			  ] ),
 	],
 	{
 		stdio: 'inherit',
