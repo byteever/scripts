@@ -96,9 +96,20 @@ const customize = ( config ) => {
 				plugin?.constructor?.name
 		);
 		if ( -1 !== dewp ) {
+			/**
+			 * Extended dependency extraction that handles custom script externals.
+			 * Reads externals from webpack config and generates correct handles in .asset.php.
+			 *
+			 * @see ../plugins/script-externals.js
+			 */
 			plugins.splice( dewp, 1, new ScriptExternalsPlugin() );
 		}
 
+		/**
+		 * Remove empty scripts emitted for CSS-only entry points.
+		 *
+		 * @see https://www.npmjs.com/package/webpack-remove-empty-scripts
+		 */
 		plugins.push(
 			new RemoveEmptyScriptsPlugin( {
 				stage: RemoveEmptyScriptsPlugin.STAGE_AFTER_PROCESS_PLUGINS,
@@ -107,8 +118,20 @@ const customize = ( config ) => {
 		);
 	}
 
+	/**
+	 * Replace 'byteever' text domains in PHP vendor files and JS assets.
+	 * Auto-detects text domain from package.json (textDomain → name → folder).
+	 *
+	 * @see ../plugins/textdomain-plugin.js
+	 */
+	plugins.push( new TextDomainPlugin() );
+
+	/**
+	 * Show progressbar for cleaner build output.
+	 *
+	 * @see https://github.com/unjs/webpackbar
+	 */
 	plugins.push(
-		new TextDomainPlugin(),
 		new WebpackBar( { name: isModule ? 'modules' : 'scripts' } )
 	);
 
