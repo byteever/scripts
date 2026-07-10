@@ -1,8 +1,8 @@
 /**
  * Default ESLint flat config for @byteever/scripts.
  *
- * Projects require this from their eslint.config.js; the allowed text
- * domain derives from the package name.
+ * Projects spread this from their eslint.config.js and declare their own
+ * allowed text domain.
  */
 
 /**
@@ -14,11 +14,6 @@ const path = require( 'path' );
  * WordPress dependencies
  */
 const { hasBabelConfig } = require( '@wordpress/scripts/utils' );
-
-/**
- * Internal dependencies
- */
-const { getPackageOption } = require( '../utils' );
 
 const wpScriptsPath = path.dirname(
 	require.resolve( '@wordpress/scripts/package.json' )
@@ -61,15 +56,6 @@ const config = [
 			'import/no-extraneous-dependencies': 'off',
 			'no-console': 'off',
 			'@wordpress/dependency-group': 'warn',
-			'@wordpress/i18n-text-domain': [
-				'error',
-				{
-					allowedTextDomain: getPackageOption(
-						[ 'byteever.i18n.textdomain', 'name' ],
-						''
-					),
-				},
-			],
 		},
 	},
 ];
