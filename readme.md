@@ -1,303 +1,123 @@
 # @byteever/scripts
 
-> Build tools for WordPress plugins and themes - Webpack config wrapper and package transpilation for monorepos
+Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/) wrapper for ByteEver plugins.
 
----
+## What it does
 
-## Features
+- `byteever-scripts` forwards every command to `wp-scripts`; `build` and `start` run through the ByteEver webpack config unless the project provides its own.
+- Source at `assets/src/`, output at `assets/build/` — no flags, no config file.
+- Copies block `block.json` and PHP files (`render.php`) into the build; emits async chunks to `chunks/`.
+- Entries and externals are declared in `package.json` under the `byteever` key.
+- Defaults the browserslist to the wp-scripts fallback config when the project declares none, so autoprefixer matches the webpack target.
+- Replaces the `byteever` text domain with the plugin's own domain in vendor PHP (via node-wp-i18n), project JS, and `@byteever/*` packages; PHP i18n calls missing a domain get one added.
+- Extended dependency extraction for cross-plugin shared libraries.
 
-### Webpack Configuration
-- Extends `@wordpress/scripts` with intelligent defaults
-- Customizable source/output paths (defaults: `assets/src/` → `assets/build/`)
-- Auto-copy images and fonts
-- Bundle optimization (removes empty scripts, trims timezone data)
-- Clean progress reporting with WebpackBar
+## Setup
 
-### Package Building (Monorepo Support)
-- Transpiles TypeScript/JavaScript packages using Babel
-- Compiles SCSS to CSS with RTL support
-- Builds both CommonJS (`build/`) and ESM (`build-module/`) outputs
-- TypeScript declaration generation
-- Watch mode for development
-- Works with both monorepos (workspaces) and single packages
-
----
-
-## Installation
-
-```bash
-npm install @byteever/scripts --save-dev
-npm install @wordpress/scripts --save-dev
-```
-
----
-
-## Usage
-
-### 1. Webpack Configuration
-
-Create `webpack.config.js` in your project root:
+`eslint.config.js` (the shared config wires up the ByteEver ESLint plugin from `tools/eslint`, extending `@wordpress/eslint-plugin`; custom `byteever/*` rules get a home there):
 
 ```js
-const createConfig = require('@byteever/scripts');
-const baseConfig = require('@wordpress/scripts/config/webpack.config');
-
-module.exports = createConfig(baseConfig);
+module.exports = [
+	...require( '@byteever/scripts/config/eslint.config' ),
+	{
+		rules: {
+			'@wordpress/i18n-text-domain': [
+				'error',
+				{ allowedTextDomain: 'my-plugin' },
+			],
+		},
+	},
+];
 ```
 
-**With custom entries:**
+`.prettierrc.js`:
 
 ```js
-module.exports = createConfig(baseConfig, {
-  'client/index': './assets/src/client/index.js',
-  'admin/settings': './assets/src/admin/settings.js',
-});
+module.exports = require( '@byteever/scripts/config/prettier.config' );
 ```
-
-**With function-based config override:**
-
-```js
-module.exports = createConfig(baseConfig, (config) => ({
-  devtool: 'source-map',
-  output: {
-    ...config.output,
-    filename: '[name].[contenthash].js',
-  },
-}));
-```
-
-**Custom paths via CLI:**
-
-```bash
-wp-scripts build --source-path=src --output-path=dist
-```
-
-Or set environment variables before importing the config (defaults apply if not set).
-
-### 2. Package Building (Monorepo)
-
-Add scripts to your root `package.json`:
 
 ```json
 {
-  "scripts": {
-    "build": "byteever-scripts build-package && wp-scripts build",
-    "start": "byteever-scripts build-package && concurrently \"byteever-scripts watch-package\" \"wp-scripts start\""
-  }
+	"scripts": {
+		"start": "byteever-scripts start --experimental-modules --blocks-manifest",
+		"build": "byteever-scripts build --experimental-modules --blocks-manifest",
+		"lint:js": "byteever-scripts lint-js",
+		"lint:css": "byteever-scripts lint-style",
+		"format": "byteever-scripts format"
+	},
+	"byteever": {
+		"entries": {
+			"admin": "assets/src/admin/index.js",
+			"frontend": "assets/src/frontend/index.js"
+		}
+	}
 }
 ```
 
-**Package detection:**
+## Options
 
-Packages are detected by the presence of a `"module"` field in their `package.json`:
+Under the `byteever` key in `package.json`:
+
+- `entries` — entry points; a string path, or a webpack entry descriptor for producers exposing a shared library:
 
 ```json
 {
-  "name": "@myproject/components",
-  "version": "1.0.0",
-  "main": "build/index.js",
-  "module": "build-module/index.js"
+	"byteever": {
+		"entries": {
+			"shared": {
+				"import": "assets/src/shared/index.js",
+				"library": { "name": [ "byteever", "shared" ], "type": "window" }
+			}
+		}
+	}
 }
 ```
 
-**Monorepo setup (with workspaces):**
+- `externals` — scoped packages consumed from another plugin's shared library; handles are written into `.asset.php` as `{scope}-{name}`:
 
 ```json
 {
-  "name": "my-plugin",
-  "workspaces": ["packages/*"],
-  "devDependencies": {
-    "@byteever/scripts": "^2.2.0",
-    "concurrently": "^9.0.0"
-  }
+	"byteever": {
+		"externals": {
+			"@byteever/shared": [ "byteever", "shared" ]
+		}
+	}
 }
 ```
 
-**Single package setup (no workspaces):**
+- `i18n` — text domain handling. `textdomain` is detected from the package `name` when not set; `updateDomains` lists the domains to replace (`true` for all) and defaults to `[ "byteever" ]`; `include`/`exclude` take directories or glob patterns — PHP files are selected internally:
 
-If your root `package.json` has a `"module"` field, it will be built as a single package.
-
-**Directory structure:**
-
-```
-project/
-├── packages/
-│   ├── components/
-│   │   ├── src/
-│   │   │   ├── index.js
-│   │   │   └── Button.js
-│   │   ├── package.json        # Has "module" field
-│   │   ├── build/              # Generated (CommonJS)
-│   │   └── build-module/       # Generated (ESM)
-│   └── data/
-│       ├── src/
-│       ├── package.json        # Has "module" field
-│       ├── build/
-│       └── build-module/
-├── assets/
-│   ├── src/                    # JS/CSS source
-│   └── build/                  # Compiled output
-├── webpack.config.js
-└── package.json
+```json
+{
+	"byteever": {
+		"i18n": {
+			"textdomain": "my-plugin",
+			"updateDomains": [ "byteever", "old-domain" ],
+			"include": [ "vendor/byteever" ],
+			"exclude": [ "vendor/byteever/tests" ]
+		}
+	}
+}
 ```
 
----
+## Custom webpack config
 
-## CLI Commands
-
-### `byteever-scripts build-package`
-
-Builds packages with a `"module"` field in their `package.json`.
-
-**What it does:**
-- Transpiles JS/TS/TSX files from `src/` to `build/` (CommonJS) and `build-module/` (ESM)
-- Compiles SCSS files to CSS with automatic RTL generation in `build-style/`
-- Copies JSON files
-- Generates TypeScript declarations (if `tsconfig.json` exists)
-
-**File extensions handled:**
-- `.js`, `.ts`, `.tsx` → Babel transpilation
-- `.scss` → Sass compilation + PostCSS + RTL
-- `.json` → Direct copy
-
-### `byteever-scripts watch-package`
-
-Same as `build-package` but watches for file changes and rebuilds incrementally.
-
----
-
-## Package Build Output
-
-Given this source structure:
-
-```
-packages/components/src/
-├── index.js
-├── Button.js
-└── styles.scss
-```
-
-Build produces:
-
-```
-packages/components/
-├── build/                # CommonJS
-│   ├── index.js
-│   ├── index.js.map
-│   ├── Button.js
-│   └── Button.js.map
-├── build-module/         # ESM
-│   ├── index.js
-│   ├── index.js.map
-│   ├── Button.js
-│   └── Button.js.map
-└── build-style/          # CSS
-    ├── styles.css
-    └── styles-rtl.css
-```
-
----
-
-## Webpack Plugins Included
-
-- `webpackbar` - Clean progress bar
-- `copy-webpack-plugin` - Auto-copy images/fonts
-- `webpack-remove-empty-scripts` - Removes empty JS from CSS-only entries
-- `moment-timezone-data-webpack-plugin` - Reduces timezone data (from year 2000)
-
----
-
-## Environment Variables
-
-- `WP_SOURCE_PATH` - Source directory (default: `assets/src`)
-- `WP_OUTPUT_PATH` - Output directory (default: `assets/build`)
-- `NODE_ENV` - Set to `development` to build only ESM for packages
-
----
-
-## Configuration Options
-
-### Webpack Config Override
-
-**Object (replaces entries):**
+Create a `webpack.config.js` and `byteever-scripts` defers to it. Extend the ByteEver config exactly like the `@wordpress/scripts` one:
 
 ```js
-module.exports = createConfig(baseConfig, {
-  'app': './src/app.js',
-});
+const baseConfig = require( '@byteever/scripts/config/webpack.config' );
+
+module.exports = {
+	...baseConfig,
+	entry: {
+		...baseConfig.entry,
+		'js/admin': './assets/src/js/admin.js',
+	},
+};
 ```
 
-**Function (merges with base config):**
+With `--experimental-modules` the export is a `[ scripts, modules ]` array, matching `@wordpress/scripts`.
 
-```js
-module.exports = createConfig(baseConfig, (config) => ({
-  devtool: 'source-map',
-}));
-```
+## Text domain
 
-### Package Building
-
-**In package.json:**
-
-```json
-{
-  "name": "@myproject/utils",
-  "version": "1.0.0",
-  "main": "build/index.js",
-  "module": "build-module/index.js"
-}
-```
-
-The `"module"` field is **required** for the package to be detected and built.
-
----
-
-## Examples
-
-### Example 1: Plugin with Monorepo
-
-```json
-{
-  "name": "my-plugin",
-  "workspaces": ["packages/*"],
-  "scripts": {
-    "build": "byteever-scripts build-package && wp-scripts build",
-    "start": "byteever-scripts build-package && concurrently \"byteever-scripts watch-package\" \"wp-scripts start\""
-  }
-}
-```
-
-### Example 2: Single Package
-
-```json
-{
-  "name": "@myorg/library",
-  "main": "build/index.js",
-  "module": "build-module/index.js",
-  "scripts": {
-    "build": "byteever-scripts build-package"
-  }
-}
-```
-
-### Example 3: Custom Webpack Entry
-
-```js
-// webpack.config.js
-const createConfig = require('@byteever/scripts');
-const baseConfig = require('@wordpress/scripts/config/webpack.config');
-
-module.exports = createConfig(baseConfig, {
-  'client/index': './assets/src/client/index.js',
-});
-```
-
----
-
-## Author
-
-Built by [ByteEver](https://byteever.com)
-
-## License
-
-MIT
+The target domain is detected from the package `name`, normalized to a slug; override it with `byteever.i18n.textdomain`. The domains to replace default to `[ "byteever" ]`; override with `byteever.i18n.updateDomains` (or `true` for all). Vendor PHP is rewritten in place via node-wp-i18n.

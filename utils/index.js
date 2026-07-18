@@ -1,9 +1,17 @@
-const { getArgFromCLI, hasArgInCLI } = require('./process');
-const { getNodeArgsFromCLI, spawnScript } = require('./cli');
+/**
+ * Internal dependencies
+ */
+const {
+	getPackageOption,
+	getScriptArgs,
+	hasWebpackConfig,
+} = require( './config' );
+const { SOURCE_DIR, OUTPUT_DIR } = require( './constants' );
 
 module.exports = {
-	getArgFromCLI,
-	hasArgInCLI,
-	getNodeArgsFromCLI,
-	spawnScript,
+	getPackageOption,
+	getScriptArgs,
+	hasWebpackConfig,
+	SOURCE_DIR,
+	OUTPUT_DIR,
 };
