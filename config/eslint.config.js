@@ -21,7 +21,7 @@ const { hasBabelConfig } = require( '@wordpress/scripts/utils' );
 const byteeverPlugin = require( '../tools/eslint' );
 
 const wpScriptsPath = path.dirname(
-	require.resolve( '@wordpress/scripts/package.json' )
+	require.resolve( '@wordpress/scripts/package.json' ),
 );
 
 const config = [ ...byteeverPlugin.configs.recommended ];

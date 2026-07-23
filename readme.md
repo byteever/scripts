@@ -14,7 +14,7 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 
 ## Setup
 
-`eslint.config.js` (the shared config wires up the ByteEver ESLint plugin from `tools/eslint`, extending `@wordpress/eslint-plugin`; custom `byteever/*` rules get a home there):
+`eslint.config.js` (the shared config wires up the ByteEver ESLint plugin from `tools/eslint`, extending `@wordpress/eslint-plugin`; the plugin object is a placeholder namespace for future `byteever/*` rules):
 
 ```js
 module.exports = [
