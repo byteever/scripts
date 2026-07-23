@@ -7,9 +7,15 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 /**
  * Internal dependencies
  */
+const DropAsyncChunkRtlPlugin = require( '../plugins/drop-async-chunk-rtl' );
 const ScriptExternalsPlugin = require( '../plugins/script-externals' );
 const TextDomainPlugin = require( '../plugins/textdomain-plugin' );
-const { getPackageOption, SOURCE_DIR, OUTPUT_DIR } = require( '../utils' );
+const {
+	getPackageOption,
+	resolveFromProjectRoot,
+	SOURCE_DIR,
+	OUTPUT_DIR,
+} = require( '../utils' );
 
 // @wordpress/scripts reads these at require time; CLI flags win over defaults.
 if ( ! process.env.WP_SOURCE_PATH ) {
@@ -22,7 +28,9 @@ if ( ! process.env.WP_COPY_PHP_FILES_TO_DIST ) {
 /**
  * WordPress dependencies — loaded after the env defaults above.
  */
-const baseConfig = require( '@wordpress/scripts/config/webpack.config' );
+const baseConfig = require( resolveFromProjectRoot(
+	'@wordpress/scripts/config/webpack.config',
+) );
 
 const ROOT_PATH = process.cwd();
 const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
@@ -37,7 +45,7 @@ const entries = Object.fromEntries(
 		typeof file === 'string'
 			? path.resolve( ROOT_PATH, file )
 			: { ...file, import: path.resolve( ROOT_PATH, file.import ) },
-	] )
+	] ),
 );
 
 /**
@@ -45,13 +53,16 @@ const entries = Object.fromEntries(
  *
  * The base export is a single config, or [ scripts, modules ] when script
  * modules are enabled; the module half keeps its own entries and externals.
+ *
+ * @param {Object} config Base webpack config to customize.
+ * @return {Object} The customized config.
  */
 const customize = ( config ) => {
 	/**
 	 * Extract CSS chunks next to the script chunks.
 	 */
 	const miniCss = config.plugins?.find(
-		( plugin ) => 'MiniCssExtractPlugin' === plugin?.constructor?.name
+		( plugin ) => 'MiniCssExtractPlugin' === plugin?.constructor?.name,
 	);
 	if ( miniCss ) {
 		miniCss.options.chunkFilename = 'chunks/[name].css';
@@ -63,6 +74,42 @@ const customize = ( config ) => {
 			...config.output,
 			path: OUTPUT_PATH,
 			chunkFilename: 'chunks/[name].js',
+		},
+		optimization: {
+			...config.optimization,
+			splitChunks: {
+				...config.optimization?.splitChunks,
+				cacheGroups: {
+					...config.optimization?.splitChunks?.cacheGroups,
+
+					/**
+					 * Collect CSS shared across 2+ lazy chunks (a component
+					 * reused by multiple lazy routes) into one common
+					 * stylesheet, instead of duplicating it into each chunk.
+					 * Async-only: extracting from initial chunks would emit a
+					 * vendor file nothing on the PHP side ever enqueues.
+					 */
+					vendorStyles: {
+						type: 'css/mini-extract',
+						chunks: 'async',
+						minChunks: 2,
+						name: 'vendor',
+						enforce: true,
+						reuseExistingChunk: true,
+					},
+
+					/**
+					 * Same dedup for JS shared across 2+ lazy chunks.
+					 */
+					vendorScripts: {
+						chunks: 'async',
+						minChunks: 2,
+						name: 'vendor',
+						enforce: true,
+						reuseExistingChunk: true,
+					},
+				},
+			},
 		},
 		plugins: [
 			...( config.plugins || [] ),
@@ -76,17 +123,25 @@ const customize = ( config ) => {
 			new TextDomainPlugin( {
 				textdomain: getPackageOption(
 					[ 'byteever.i18n.textdomain', 'name' ],
-					''
+					'',
 				),
 				updateDomains: getPackageOption(
 					'byteever.i18n.updateDomains',
-					[ 'byteever' ]
+					[ 'byteever' ],
 				),
 				include: getPackageOption( 'byteever.i18n.include', [
 					'vendor/byteever',
 				] ),
 				exclude: getPackageOption( 'byteever.i18n.exclude', [] ),
 			} ),
+
+			/**
+			 * Drop the -rtl.css files emitted for async chunks — WordPress
+			 * only swaps enqueued styles to -rtl, never runtime-loaded chunks.
+			 *
+			 * @see ../plugins/drop-async-chunk-rtl.js
+			 */
+			new DropAsyncChunkRtlPlugin(),
 		],
 		stats: {
 			all: false,
@@ -122,7 +177,7 @@ const customize = ( config ) => {
 			...base.plugins.filter(
 				( plugin ) =>
 					'DependencyExtractionWebpackPlugin' !==
-					plugin?.constructor?.name
+					plugin?.constructor?.name,
 			),
 
 			/**
