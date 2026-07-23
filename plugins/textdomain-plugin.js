@@ -90,6 +90,9 @@ class TextDomainPlugin {
 
 	/**
 	 * Get the babel replacement map for the domains to update.
+	 *
+	 * @param {string} textDomain Text domain to replace with.
+	 * @return {string|Object} Plain domain string, or old-to-new domain map.
 	 */
 	getBabelTextdomain( textDomain ) {
 		const { updateDomains } = this.options;
@@ -99,12 +102,16 @@ class TextDomainPlugin {
 		}
 
 		return Object.fromEntries(
-			updateDomains.map( ( domain ) => [ domain, textDomain ] )
+			updateDomains.map( ( domain ) => [ domain, textDomain ] ),
 		);
 	}
 
 	/**
 	 * Resolve directories or glob patterns to the PHP files they contain.
+	 *
+	 * @param {string[]} patterns Directories or glob patterns to resolve.
+	 * @param {string}   cwd      Base directory for resolution.
+	 * @return {Set<string>} Absolute PHP file paths.
 	 */
 	resolvePhpFiles( patterns, cwd ) {
 		const files = new Set();
@@ -136,6 +143,10 @@ class TextDomainPlugin {
 
 	/**
 	 * Replace the text domain in PHP files via node-wp-i18n.
+	 *
+	 * @param {string} rootPath   Root the include/exclude patterns resolve from.
+	 * @param {string} textDomain Text domain to write.
+	 * @return {Promise<void>} Resolves when the rewrite finishes or is skipped.
 	 */
 	replacePhpTextDomain( rootPath, textDomain ) {
 		const excluded = this.resolvePhpFiles( this.options.exclude, rootPath );
@@ -154,15 +165,17 @@ class TextDomainPlugin {
 				updateDomains: this.options.updateDomains,
 			} )
 			.catch( ( error ) => {
-				// eslint-disable-next-line no-console
 				console.warn(
-					`${ PLUGIN_NAME }: skipped vendor PHP rewrite (${ error.message }).`
+					`${ PLUGIN_NAME }: skipped vendor PHP rewrite (${ error.message }).`,
 				);
 			} );
 	}
 
 	/**
 	 * Rewrite the text domain in JS via babel, including @byteever packages.
+	 *
+	 * @param {Object} compiler   Webpack compiler instance.
+	 * @param {string} textDomain Text domain to write.
 	 */
 	addBabelPlugin( compiler, textDomain ) {
 		const plugin = [
@@ -183,7 +196,7 @@ class TextDomainPlugin {
 						! use.options.plugins.some(
 							( entry ) =>
 								Array.isArray( entry ) &&
-								entry[ 0 ] === plugin[ 0 ]
+								entry[ 0 ] === plugin[ 0 ],
 						)
 					) {
 						use.options.plugins.push( plugin );
@@ -205,8 +218,8 @@ class TextDomainPlugin {
 					paths: [
 						path.dirname(
 							require.resolve(
-								'@wordpress/scripts/package.json'
-							)
+								'@wordpress/scripts/package.json',
+							),
 						),
 					],
 				} ),
