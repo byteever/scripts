@@ -16,7 +16,7 @@ const path = require( 'path' );
 const { version } = require( '../../package.json' );
 
 const wpScriptsPath = path.dirname(
-	require.resolve( '@wordpress/scripts/package.json' )
+	require.resolve( '@wordpress/scripts/package.json' ),
 );
 const wpPlugin = require( require.resolve( '@wordpress/eslint-plugin', {
 	paths: [ wpScriptsPath ],
