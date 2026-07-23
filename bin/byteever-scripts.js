@@ -17,7 +17,7 @@ const {
 /**
  * Internal dependencies
  */
-const { getScriptArgs } = require( '../utils' );
+const { getScriptArgs, resolveFromProjectRoot } = require( '../utils' );
 
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
 
@@ -29,8 +29,8 @@ if (
 	! hasProjectFile( '.browserslistrc' ) &&
 	! hasProjectFile( 'browserslist' )
 ) {
-	process.env.BROWSERSLIST_CONFIG = require.resolve(
-		'@wordpress/scripts/config/.browserslistrc'
+	process.env.BROWSERSLIST_CONFIG = resolveFromProjectRoot(
+		'@wordpress/scripts/config/.browserslistrc',
 	);
 }
 
@@ -38,13 +38,13 @@ const { status } = spawn(
 	'node',
 	[
 		...nodeArgs,
-		require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ),
+		resolveFromProjectRoot( '@wordpress/scripts/bin/wp-scripts.js' ),
 		...( scriptName
 			? [ scriptName, ...getScriptArgs( scriptName, scriptArgs ) ]
 			: [] ),
 	],
 	{
 		stdio: 'inherit',
-	}
+	},
 );
 process.exit( status === null ? 1 : status );

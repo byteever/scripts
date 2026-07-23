@@ -25,15 +25,19 @@
 const path = require( 'path' );
 
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
+const { resolveFromProjectRoot } = require( '../utils' );
+
 const DependencyExtractionWebpackPlugin = require( require.resolve(
 	'@wordpress/dependency-extraction-webpack-plugin',
 	{
 		paths: [
-			path.dirname( require.resolve( '@wordpress/scripts/package.json' ) ),
+			path.dirname(
+				resolveFromProjectRoot( '@wordpress/scripts/package.json' ),
+			),
 		],
-	}
+	},
 ) );
 
 /**
@@ -46,7 +50,7 @@ class ScriptExternalsPlugin extends DependencyExtractionWebpackPlugin {
 	/**
 	 * Create a ScriptExternalsPlugin instance.
 	 *
-	 * @param {Object}   options                  Plugin options passed to parent.
+	 * @param {Object}   options                   Plugin options passed to parent.
 	 * @param {Function} options.requestToExternal Optional custom external resolver.
 	 * @param {Function} options.requestToHandle   Optional custom handle resolver.
 	 */
