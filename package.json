@@ -49,5 +49,8 @@
 	},
 	"peerDependencies": {
 		"@wordpress/scripts": ">=32.0.0"
+	},
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
 	}
 }
