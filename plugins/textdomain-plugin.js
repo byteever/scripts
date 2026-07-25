@@ -60,8 +60,9 @@ class TextDomainPlugin {
 			path.basename( rootPath )
 		)
 			.toLowerCase()
-			.replace( /^@/, '' )
-			.replace( /[^a-z0-9-]+/g, '-' );
+			.replace( /^@[^/]+\//, '' )
+			.replace( /[^a-z0-9-]+/g, '-' )
+			.replace( /^-+|-+$/g, '' );
 
 		if (
 			! textDomain ||
