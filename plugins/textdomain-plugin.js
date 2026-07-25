@@ -16,9 +16,7 @@
 const path = require( 'path' );
 const fs = require( 'fs' );
 const wpi18n = require( 'node-wp-i18n' );
-const glob = require( require.resolve( 'glob', {
-	paths: [ path.dirname( require.resolve( 'node-wp-i18n/package.json' ) ) ],
-} ) );
+const glob = require( 'glob' );
 
 /**
  * WordPress dependencies
