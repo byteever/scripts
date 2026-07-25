@@ -170,10 +170,6 @@ const customize = ( config ) => {
 			...base.externals,
 			...getPackageOption( 'byteever.externals', {} ),
 		},
-		output: {
-			...base.output,
-			enabledLibraryTypes: [ 'window' ],
-		},
 		plugins: [
 			...base.plugins.filter(
 				( plugin ) =>

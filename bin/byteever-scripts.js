@@ -8,11 +8,7 @@ const { sync: spawn } = require( 'cross-spawn' );
 /**
  * WordPress dependencies
  */
-const {
-	getNodeArgsFromCLI,
-	getPackageProp,
-	hasProjectFile,
-} = require( '@wordpress/scripts/utils' );
+const { getNodeArgsFromCLI } = require( '@wordpress/scripts/utils' );
 
 /**
  * Internal dependencies
@@ -20,19 +16,6 @@ const {
 const { getScriptArgs, resolveFromProjectRoot } = require( '../utils' );
 
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
-
-// Default the browserslist to the WordPress config when the project has
-// none, so autoprefixer matches the webpack target fallback.
-if (
-	! process.env.BROWSERSLIST_CONFIG &&
-	! getPackageProp( 'browserslist' ) &&
-	! hasProjectFile( '.browserslistrc' ) &&
-	! hasProjectFile( 'browserslist' )
-) {
-	process.env.BROWSERSLIST_CONFIG = resolveFromProjectRoot(
-		'@wordpress/scripts/config/.browserslistrc',
-	);
-}
 
 const { status } = spawn(
 	'node',
