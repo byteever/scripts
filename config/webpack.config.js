@@ -73,7 +73,7 @@ const customize = ( config ) => {
 		output: {
 			...config.output,
 			path: OUTPUT_PATH,
-			chunkFilename: 'chunks/[name].js',
+			chunkFilename: 'chunks/[name].js?ver=[chunkhash]',
 		},
 		optimization: {
 			...config.optimization,
