@@ -146,6 +146,7 @@ const customize = ( config ) => {
 		stats: {
 			all: false,
 			errors: true,
+			errorDetails: true,
 			warnings: true,
 			assets: true,
 			colors: true,
