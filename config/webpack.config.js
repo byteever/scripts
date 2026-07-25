@@ -186,7 +186,7 @@ const customize = ( config ) => {
 			 *
 			 * @see ../plugins/script-externals.js
 			 */
-			new ScriptExternalsPlugin(),
+			! process.env.WP_NO_EXTERNALS && new ScriptExternalsPlugin(),
 
 			/**
 			 * Remove empty scripts emitted for CSS-only entry points.
