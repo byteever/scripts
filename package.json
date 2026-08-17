@@ -1,7 +1,7 @@
 {
 	"name": "@byteever/scripts",
-	"version": "4.0.0",
-	"description": "Zero-config @wordpress/scripts wrapper for ByteEver plugins: assets/src in, assets/build out.",
+	"version": "5.0.0",
+	"description": "Zero-config @wordpress/scripts wrapper for ByteEver plugins: src in, build out.",
 	"author": "ByteEver",
 	"license": "GPL-2.0-or-later",
 	"keywords": [
@@ -52,6 +52,6 @@
 		"@wordpress/scripts": ">=32.0.0"
 	},
 	"publishConfig": {
-		"registry": "https://npm.pkg.github.com"
+		"access": "public"
 	}
 }

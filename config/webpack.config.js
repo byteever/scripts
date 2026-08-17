@@ -10,30 +10,21 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 const DropAsyncChunkRtlPlugin = require( '../plugins/drop-async-chunk-rtl' );
 const ScriptExternalsPlugin = require( '../plugins/script-externals' );
 const TextDomainPlugin = require( '../plugins/textdomain-plugin' );
-const {
-	getPackageOption,
-	resolveFromProjectRoot,
-	SOURCE_DIR,
-	OUTPUT_DIR,
-} = require( '../utils' );
+const { getPackageOption, resolveFromProjectRoot } = require( '../utils' );
 
-// @wordpress/scripts reads these at require time; CLI flags win over defaults.
-if ( ! process.env.WP_SOURCE_PATH ) {
-	process.env.WP_SOURCE_PATH = SOURCE_DIR;
-}
+// @wordpress/scripts reads this at require time; CLI flags win over defaults.
 if ( ! process.env.WP_COPY_PHP_FILES_TO_DIST ) {
 	process.env.WP_COPY_PHP_FILES_TO_DIST = 'true';
 }
 
 /**
- * WordPress dependencies — loaded after the env defaults above.
+ * WordPress dependencies — loaded after the env default above.
  */
 const baseConfig = require( resolveFromProjectRoot(
 	'@wordpress/scripts/config/webpack.config',
 ) );
 
 const ROOT_PATH = process.cwd();
-const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
 
 /**
  * Entries declared in package.json under byteever.entries — a string path,
@@ -65,51 +56,44 @@ const customize = ( config ) => {
 		( plugin ) => 'MiniCssExtractPlugin' === plugin?.constructor?.name,
 	);
 	if ( miniCss ) {
-		miniCss.options.chunkFilename = 'chunks/[name].css';
+		miniCss.options.chunkFilename = 'chunks/[name].css?ver=[contenthash]';
+	}
+
+	/**
+	 * Hoist code shared by two or more async chunks into one common chunk.
+	 *
+	 * wp-scripts sets `cacheGroups.default` to false, so nothing is hoisted and
+	 * a module reached by ten lazy routes is emitted ten times. The scope is
+	 * `async` because WordPress enqueues one script handle per entry: splitting
+	 * an initial chunk emits a file nothing enqueues, while an async chunk is
+	 * fetched by webpack's own loader. `name: false` keeps chunk filenames
+	 * numeric — generated names break WordPress.org deployment.
+	 */
+	if ( ! config.output?.module ) {
+		config.optimization = {
+			...config.optimization,
+			splitChunks: {
+				...config.optimization?.splitChunks,
+				name: false,
+				cacheGroups: {
+					...config.optimization?.splitChunks?.cacheGroups,
+					common: {
+						chunks: 'async',
+						minChunks: 2,
+						minSize: 0,
+						reuseExistingChunk: true,
+						priority: 10,
+					},
+				},
+			},
+		};
 	}
 
 	const base = {
 		...config,
 		output: {
 			...config.output,
-			path: OUTPUT_PATH,
 			chunkFilename: 'chunks/[name].js?ver=[chunkhash]',
-		},
-		optimization: {
-			...config.optimization,
-			splitChunks: {
-				...config.optimization?.splitChunks,
-				cacheGroups: {
-					...config.optimization?.splitChunks?.cacheGroups,
-
-					/**
-					 * Collect CSS shared across 2+ lazy chunks (a component
-					 * reused by multiple lazy routes) into one common
-					 * stylesheet, instead of duplicating it into each chunk.
-					 * Async-only: extracting from initial chunks would emit a
-					 * vendor file nothing on the PHP side ever enqueues.
-					 */
-					vendorStyles: {
-						type: 'css/mini-extract',
-						chunks: 'async',
-						minChunks: 2,
-						name: 'vendor',
-						enforce: true,
-						reuseExistingChunk: true,
-					},
-
-					/**
-					 * Same dedup for JS shared across 2+ lazy chunks.
-					 */
-					vendorScripts: {
-						chunks: 'async',
-						minChunks: 2,
-						name: 'vendor',
-						enforce: true,
-						reuseExistingChunk: true,
-					},
-				},
-			},
 		},
 		plugins: [
 			...( config.plugins || [] ),
@@ -160,6 +144,17 @@ const customize = ( config ) => {
 
 	return {
 		...base,
+		output: {
+			...base.output,
+
+			/*
+			 * @wordpress/scripts disables clean under --experimental-modules so
+			 * the two compilations cannot wipe each other. Only this half emits
+			 * chunks/, and those names are content-hashed, so stale ones would
+			 * otherwise ship forever.
+			 */
+			clean: { keep: ( asset ) => ! asset.startsWith( 'chunks/' ) },
+		},
 		entry: {
 			...( typeof config.entry === 'function'
 				? config.entry()

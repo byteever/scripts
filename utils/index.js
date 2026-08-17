@@ -6,7 +6,6 @@ const {
 	getScriptArgs,
 	hasWebpackConfig,
 } = require( './config' );
-const { SOURCE_DIR, OUTPUT_DIR } = require( './constants' );
 const { resolveFromProjectRoot } = require( './file' );
 
 module.exports = {
@@ -14,6 +13,4 @@ module.exports = {
 	getScriptArgs,
 	hasWebpackConfig,
 	resolveFromProjectRoot,
-	SOURCE_DIR,
-	OUTPUT_DIR,
 };

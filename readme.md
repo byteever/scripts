@@ -5,10 +5,9 @@ Zero-config [`@wordpress/scripts`](https://developer.wordpress.org/block-editor/
 ## What it does
 
 - `byteever-scripts` forwards every command to `wp-scripts`; `build` and `start` run through the ByteEver webpack config unless the project provides its own.
-- Source at `assets/src/`, output at `assets/build/` — no flags, no config file.
+- Source at `src/`, output at `build/` — the `wp-scripts` defaults, no flags, no config file.
 - Copies block `block.json` and PHP files (`render.php`) into the build; emits async chunks to `chunks/`.
 - Entries and externals are declared in `package.json` under the `byteever` key.
-- Defaults the browserslist to the wp-scripts fallback config when the project declares none, so autoprefixer matches the webpack target.
 - Replaces the `byteever` text domain with the plugin's own domain in vendor PHP (via node-wp-i18n), project JS, and `@byteever/*` packages; PHP i18n calls missing a domain get one added.
 - Extended dependency extraction for cross-plugin shared libraries.
 
@@ -47,8 +46,8 @@ module.exports = require( '@byteever/scripts/config/prettier.config' );
 	},
 	"byteever": {
 		"entries": {
-			"admin": "assets/src/admin/index.js",
-			"frontend": "assets/src/frontend/index.js"
+			"admin": "src/admin/index.js",
+			"frontend": "src/frontend/index.js"
 		}
 	}
 }
@@ -65,7 +64,7 @@ Under the `byteever` key in `package.json`:
 	"byteever": {
 		"entries": {
 			"shared": {
-				"import": "assets/src/shared/index.js",
+				"import": "src/shared/index.js",
 				"library": { "name": [ "byteever", "shared" ], "type": "window" }
 			}
 		}
@@ -111,7 +110,7 @@ module.exports = {
 	...baseConfig,
 	entry: {
 		...baseConfig.entry,
-		'js/admin': './assets/src/js/admin.js',
+		'js/admin': './src/js/admin.js',
 	},
 };
 ```

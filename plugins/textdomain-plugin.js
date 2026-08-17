@@ -25,8 +25,8 @@ const { getPackageProp } = require( '@wordpress/scripts/utils' );
 
 const PLUGIN_NAME = 'TextDomainPlugin';
 
-let phpRewritten = false;
 const injectedRules = new WeakSet();
+const phpRewrittenCompilers = new WeakSet();
 
 class TextDomainPlugin {
 	/**
@@ -77,10 +77,10 @@ class TextDomainPlugin {
 
 		for ( const hook of [ 'beforeRun', 'watchRun' ] ) {
 			compiler.hooks[ hook ].tapPromise( PLUGIN_NAME, () => {
-				if ( phpRewritten ) {
+				if ( phpRewrittenCompilers.has( compiler ) ) {
 					return Promise.resolve();
 				}
-				phpRewritten = true;
+				phpRewrittenCompilers.add( compiler );
 
 				return this.replacePhpTextDomain( rootPath, textDomain );
 			} );

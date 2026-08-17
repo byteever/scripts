@@ -35,7 +35,6 @@ const recommended = [
 	// Global ignores.
 	{
 		ignores: [
-			'**/assets/build/**',
 			'**/build/**',
 			'**/node_modules/**',
 			'**/vendor/**',
