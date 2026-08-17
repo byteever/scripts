@@ -19,7 +19,7 @@ const getPackageOption = ( paths, fallback ) => {
 		const [ head, ...rest ] = propPath.split( '.' );
 		const value = rest.reduce(
 			( object, key ) => object?.[ key ],
-			getPackageProp( head )
+			getPackageProp( head ),
 		);
 
 		if ( undefined !== value ) {
@@ -57,10 +57,10 @@ const getScriptArgs = ( script, args ) => {
 			return hasWebpackConfig()
 				? args
 				: [
-						...args,
-						'--config',
-						require.resolve( '../config/webpack.config.js' ),
-				  ];
+					...args,
+					'--config',
+					require.resolve( '../config/webpack.config.js' ),
+				];
 		default:
 			return args;
 	}

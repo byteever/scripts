@@ -9,42 +9,30 @@ const { sync: spawn } = require( 'cross-spawn' );
  * WordPress dependencies
  */
 const {
+	getArgsFromCLI,
 	getNodeArgsFromCLI,
-	getPackageProp,
-	hasProjectFile,
 } = require( '@wordpress/scripts/utils' );
 
 /**
  * Internal dependencies
  */
-const { getScriptArgs } = require( '../utils' );
+const { getScriptArgs, resolveFromProjectRoot } = require( '../utils' );
 
 const { nodeArgs, scriptName, scriptArgs } = getNodeArgsFromCLI();
 
-// Default the browserslist to the WordPress config when the project has
-// none, so autoprefixer matches the webpack target fallback.
-if (
-	! process.env.BROWSERSLIST_CONFIG &&
-	! getPackageProp( 'browserslist' ) &&
-	! hasProjectFile( '.browserslistrc' ) &&
-	! hasProjectFile( 'browserslist' )
-) {
-	process.env.BROWSERSLIST_CONFIG = require.resolve(
-		'@wordpress/scripts/config/.browserslistrc'
-	);
-}
-
+// An unknown command leaves `scriptName` undefined and `nodeArgs` holding the
+// command itself, so forward raw argv and let wp-scripts report it.
 const { status } = spawn(
 	'node',
 	[
-		...nodeArgs,
-		require.resolve( '@wordpress/scripts/bin/wp-scripts.js' ),
+		...( scriptName ? nodeArgs : [] ),
+		resolveFromProjectRoot( '@wordpress/scripts/bin/wp-scripts.js' ),
 		...( scriptName
 			? [ scriptName, ...getScriptArgs( scriptName, scriptArgs ) ]
-			: [] ),
+			: getArgsFromCLI() ),
 	],
 	{
 		stdio: 'inherit',
-	}
+	},
 );
 process.exit( status === null ? 1 : status );

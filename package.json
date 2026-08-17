@@ -1,7 +1,7 @@
 {
 	"name": "@byteever/scripts",
-	"version": "4.0.0",
-	"description": "Zero-config @wordpress/scripts wrapper for ByteEver plugins: assets/src in, assets/build out.",
+	"version": "5.0.0",
+	"description": "Zero-config @wordpress/scripts wrapper for ByteEver plugins: src in, build out.",
 	"author": "ByteEver",
 	"license": "GPL-2.0-or-later",
 	"keywords": [
@@ -44,10 +44,14 @@
 		"@automattic/babel-plugin-replace-textdomain": "^1.1.6",
 		"@wordpress/prettier-config": "^4.50.0",
 		"cross-spawn": "^7.0.6",
+		"glob": "^11.0.0",
 		"node-wp-i18n": "^1.2.8",
 		"webpack-remove-empty-scripts": "^1.1.1"
 	},
 	"peerDependencies": {
 		"@wordpress/scripts": ">=32.0.0"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

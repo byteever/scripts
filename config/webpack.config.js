@@ -7,25 +7,24 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 /**
  * Internal dependencies
  */
+const DropAsyncChunkRtlPlugin = require( '../plugins/drop-async-chunk-rtl' );
 const ScriptExternalsPlugin = require( '../plugins/script-externals' );
 const TextDomainPlugin = require( '../plugins/textdomain-plugin' );
-const { getPackageOption, SOURCE_DIR, OUTPUT_DIR } = require( '../utils' );
+const { getPackageOption, resolveFromProjectRoot } = require( '../utils' );
 
-// @wordpress/scripts reads these at require time; CLI flags win over defaults.
-if ( ! process.env.WP_SOURCE_PATH ) {
-	process.env.WP_SOURCE_PATH = SOURCE_DIR;
-}
+// @wordpress/scripts reads this at require time; CLI flags win over defaults.
 if ( ! process.env.WP_COPY_PHP_FILES_TO_DIST ) {
 	process.env.WP_COPY_PHP_FILES_TO_DIST = 'true';
 }
 
 /**
- * WordPress dependencies — loaded after the env defaults above.
+ * WordPress dependencies — loaded after the env default above.
  */
-const baseConfig = require( '@wordpress/scripts/config/webpack.config' );
+const baseConfig = require( resolveFromProjectRoot(
+	'@wordpress/scripts/config/webpack.config',
+) );
 
 const ROOT_PATH = process.cwd();
-const OUTPUT_PATH = path.resolve( ROOT_PATH, OUTPUT_DIR );
 
 /**
  * Entries declared in package.json under byteever.entries — a string path,
@@ -37,7 +36,7 @@ const entries = Object.fromEntries(
 		typeof file === 'string'
 			? path.resolve( ROOT_PATH, file )
 			: { ...file, import: path.resolve( ROOT_PATH, file.import ) },
-	] )
+	] ),
 );
 
 /**
@@ -45,24 +44,56 @@ const entries = Object.fromEntries(
  *
  * The base export is a single config, or [ scripts, modules ] when script
  * modules are enabled; the module half keeps its own entries and externals.
+ *
+ * @param {Object} config Base webpack config to customize.
+ * @return {Object} The customized config.
  */
 const customize = ( config ) => {
 	/**
 	 * Extract CSS chunks next to the script chunks.
 	 */
 	const miniCss = config.plugins?.find(
-		( plugin ) => 'MiniCssExtractPlugin' === plugin?.constructor?.name
+		( plugin ) => 'MiniCssExtractPlugin' === plugin?.constructor?.name,
 	);
 	if ( miniCss ) {
-		miniCss.options.chunkFilename = 'chunks/[name].css';
+		miniCss.options.chunkFilename = 'chunks/[name].css?ver=[contenthash]';
+	}
+
+	/**
+	 * Hoist code shared by two or more async chunks into one common chunk.
+	 *
+	 * wp-scripts sets `cacheGroups.default` to false, so nothing is hoisted and
+	 * a module reached by ten lazy routes is emitted ten times. The scope is
+	 * `async` because WordPress enqueues one script handle per entry: splitting
+	 * an initial chunk emits a file nothing enqueues, while an async chunk is
+	 * fetched by webpack's own loader. `name: false` keeps chunk filenames
+	 * numeric — generated names break WordPress.org deployment.
+	 */
+	if ( ! config.output?.module ) {
+		config.optimization = {
+			...config.optimization,
+			splitChunks: {
+				...config.optimization?.splitChunks,
+				name: false,
+				cacheGroups: {
+					...config.optimization?.splitChunks?.cacheGroups,
+					common: {
+						chunks: 'async',
+						minChunks: 2,
+						minSize: 0,
+						reuseExistingChunk: true,
+						priority: 10,
+					},
+				},
+			},
+		};
 	}
 
 	const base = {
 		...config,
 		output: {
 			...config.output,
-			path: OUTPUT_PATH,
-			chunkFilename: 'chunks/[name].js',
+			chunkFilename: 'chunks/[name].js?ver=[chunkhash]',
 		},
 		plugins: [
 			...( config.plugins || [] ),
@@ -76,21 +107,30 @@ const customize = ( config ) => {
 			new TextDomainPlugin( {
 				textdomain: getPackageOption(
 					[ 'byteever.i18n.textdomain', 'name' ],
-					''
+					'',
 				),
 				updateDomains: getPackageOption(
 					'byteever.i18n.updateDomains',
-					[ 'byteever' ]
+					[ 'byteever' ],
 				),
 				include: getPackageOption( 'byteever.i18n.include', [
 					'vendor/byteever',
 				] ),
 				exclude: getPackageOption( 'byteever.i18n.exclude', [] ),
 			} ),
+
+			/**
+			 * Drop the -rtl.css files emitted for async chunks — WordPress
+			 * only swaps enqueued styles to -rtl, never runtime-loaded chunks.
+			 *
+			 * @see ../plugins/drop-async-chunk-rtl.js
+			 */
+			new DropAsyncChunkRtlPlugin(),
 		],
 		stats: {
 			all: false,
 			errors: true,
+			errorDetails: true,
 			warnings: true,
 			assets: true,
 			colors: true,
@@ -104,6 +144,17 @@ const customize = ( config ) => {
 
 	return {
 		...base,
+		output: {
+			...base.output,
+
+			/*
+			 * @wordpress/scripts disables clean under --experimental-modules so
+			 * the two compilations cannot wipe each other. Only this half emits
+			 * chunks/, and those names are content-hashed, so stale ones would
+			 * otherwise ship forever.
+			 */
+			clean: { keep: ( asset ) => ! asset.startsWith( 'chunks/' ) },
+		},
 		entry: {
 			...( typeof config.entry === 'function'
 				? config.entry()
@@ -114,15 +165,11 @@ const customize = ( config ) => {
 			...base.externals,
 			...getPackageOption( 'byteever.externals', {} ),
 		},
-		output: {
-			...base.output,
-			enabledLibraryTypes: [ 'window' ],
-		},
 		plugins: [
 			...base.plugins.filter(
 				( plugin ) =>
 					'DependencyExtractionWebpackPlugin' !==
-					plugin?.constructor?.name
+					plugin?.constructor?.name,
 			),
 
 			/**
@@ -131,7 +178,7 @@ const customize = ( config ) => {
 			 *
 			 * @see ../plugins/script-externals.js
 			 */
-			new ScriptExternalsPlugin(),
+			! process.env.WP_NO_EXTERNALS && new ScriptExternalsPlugin(),
 
 			/**
 			 * Remove empty scripts emitted for CSS-only entry points.
